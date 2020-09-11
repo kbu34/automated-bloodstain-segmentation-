@@ -37,14 +37,14 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         self.pattern_metrics = True
 
     def load_image(self):
-        self.file_name = QtGui.QFileDialog.getOpenFileName(self, 'Open file', 
+        self.file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
          'c:\\',"Image files (*.jpg *.gif *.png *.tif)")
         if self.file_name:
             self.viewer.setPhoto(pixmap=QtGui.QPixmap(self.file_name))
             self.setWindowTitle("ABPA - " + self.file_name)
 
     def export(self):
-        save_path = QtGui.QFileDialog.getSaveFileName(self, 'Open file', 
+        save_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Open file', 
          'c:\\')
         if save_path:
             save_path = os.path.splitext(save_path)[0]
@@ -65,7 +65,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         Dialog.exec_()
 
     def show_dialog(self, dialog, accept):
-        Dialog = QtGui.QDialog()
+        Dialog = QtWidgets.QDialog()
         self.dialog = dialog
         self.dialog.setupUi(Dialog)
         self.dialog.scale_spin.setMinimum(1)
@@ -107,8 +107,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
             height, width, byteValue = self.result.shape
             bytesPerLine = 3 * width
             cv2.cvtColor(self.result, cv2.COLOR_BGR2RGB, self.result)
-            qImg = QtGui.QImage(self.result.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
-            self.pixmap = QtGui.QPixmap.fromImage(qImg)
+            qImg = QtWidgets.QImage(self.result.data, width, height, bytesPerLine, QtWidgets.QImage.Format_RGB888)
+            self.pixmap = QtWidgets.QPixmap.fromImage(qImg)
             self.viewer.setPhoto(pixmap=self.pixmap)
             
     def populate_tables(self):
@@ -133,7 +133,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
             stain_data = stain.get_summary_data()            
             for i in range(1,13):
                 if stain_data[i] != None:
-                    self.tableWidget.setItem(j,i-1, QtGui.QTableWidgetItem(str(stain_data[i])))
+                    self.tableWidget.setItem(j,i-1, QtWidgets.QTableWidgetItem(str(stain_data[i])))
             j += 1
         self.tableWidget.show()
 
@@ -151,8 +151,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         pattern_data = Seg.pattern.get_summary_data(self.pattern_metrics)
 
         for i in range(len(pattern_data)):
-            self.pattern_table_widget.setItem(i, 0, QtGui.QTableWidgetItem(str(metrics[i])))
-            self.pattern_table_widget.setItem(i, 1, QtGui.QTableWidgetItem(str(pattern_data[i])))
+            self.pattern_table_widget.setItem(i, 0, QtWidgets.QTableWidgetItem(str(metrics[i])))
+            self.pattern_table_widget.setItem(i, 1, QtWidgets.QTableWidgetItem(str(pattern_data[i])))
 
     def clear_tables(self):
         self.tableWidget.setRowCount(0)
@@ -168,11 +168,11 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         Dialog.exec_()
         
     def open_folder(self):
-        folder_name = QtGui.QFileDialog.getExistingDirectory(None, 'Select a folder:', 'C:\\', QtGui.QFileDialog.ShowDirsOnly)
+        folder_name = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', 'C:\\', QtWidgets.QFileDialog.ShowDirsOnly)
         self.batch_dialog.folder_path_edit.setText(folder_name)
 
     def output_folder(self):
-        out_folder = QtGui.QFileDialog.getExistingDirectory(None, 'Select a folder:', 'C:\\', QtGui.QFileDialog.ShowDirsOnly)
+        out_folder = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', 'C:\\', QtWidgets.QFileDialog.ShowDirsOnly)
         self.batch_dialog.output_path_edit.setText(out_folder)
 
     def batch_process(self):
@@ -182,7 +182,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         output_folder = self.batch_dialog.output_path_edit.text()
         scale = self.batch_dialog.scale_spin.value()
         if folder_name:
-            Dialog = QtGui.QDialog()
+            Dialog = QtWidgets.QDialog()
             self.dialog.setupUi(Dialog)
             self.setWindowTitle("ABPA - " + folder_name)
             if folder_name[-1] != '/' and folder_name[-1] != '\\':
@@ -194,9 +194,13 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
 
 
 def main():
-    app = QtGui.QApplication(sys.argv)
+    app = QtWidgets.QApplication(sys.argv)
     gui = BPA_App()
     gui.show()
+
+    filename="/media/rmr86/Elements/Roz/Cropped_spitting/Cropped_spitting_Exp25_panorama.jpg"
+    gui.viewer.setPhoto(pixmap=QtGui.QPixmap(filename))
+
     app.exec_()
 
 if __name__ == '__main__':

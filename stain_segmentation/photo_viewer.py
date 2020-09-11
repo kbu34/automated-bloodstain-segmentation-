@@ -1,4 +1,4 @@
-from PyQt5 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5 import QtWidgets
 
 
@@ -11,19 +11,19 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         super(PhotoViewer, self).__init__(parent)
         self._zoom = 0
         self._empty = True
-        self._scene = QtGui.QGraphicsScene(self)
-        self._photo = QtGui.QGraphicsPixmapItem()
+        self._scene = QtWidgets.QGraphicsScene(self)
+        self._photo = QtWidgets.QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
-        self.setTransformationAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
-        self.setResizeAnchor(QtGui.QGraphicsView.AnchorUnderMouse)
+        self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
+        self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
-        self.setFrameShape(QtGui.QFrame.NoFrame)
-        self.highlight = QtGui.QGraphicsRectItem()
+        self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.highlight = QtWidgets.QGraphicsRectItem()
         self._scene.addItem(self.highlight)
-        self.annotation_items = QtGui.QGraphicsItemGroup(scene=self._scene)
+        self.annotation_items = QtWidgets.QGraphicsItemGroup()
 
     def hasPhoto(self):
         return not self._empty
@@ -46,17 +46,17 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._zoom = 0
         if pixmap and not pixmap.isNull():
             self._empty = False
-            self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+            self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
             self._photo.setPixmap(pixmap)
         else:
             self._empty = True
-            self.setDragMode(QtGui.QGraphicsView.NoDrag)
-            self._photo.setPixmap(QtGui.QPixmap())
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
+            self._photo.setPixmap(QtWidgets.QPixmap())
         self.fitInView()
 
     def wheelEvent(self, event):
         if self.hasPhoto():
-            if event.delta() > 0:
+            if event.pixelDelta().y() > 0:
                 factor = 1.25
                 self._zoom += 1
             else:
@@ -69,11 +69,12 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             else:
                 self._zoom = 0
 
+
     def toggleDragMode(self):
-        if self.dragMode() == QtGui.QGraphicsView.ScrollHandDrag:
-            self.setDragMode(QtGui.QGraphicsView.NoDrag)
+        if self.dragMode() == QtWidgets.QGraphicsView.ScrollHandDrag:
+            self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
         elif not self._photo.pixmap().isNull():
-            self.setDragMode(QtGui.QGraphicsView.ScrollHandDrag)
+            self.setDragMode(QtWidgets.QGraphicsView.ScrollHandDrag)
 
     def mousePressEvent(self, event):
         if self._photo.isUnderMouse():
@@ -82,7 +83,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def add_rectangle(self, x, y, width, height):
         self.highlight.setRect(x, y, width, height)
-        penRectangle = QtGui.QPen(QtCore.Qt.blue)
+        penRectangle = QtWidgets.QPen(QtCore.Qt.blue)
         penRectangle.setWidth(3)
         self.highlight.setPen(penRectangle)
         
@@ -92,8 +93,8 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self.centerOn(x, y)
 
     def add_text(self, stain, text):
-        text = QtGui.QGraphicsTextItem(str(text))
-        font = QtGui.QFont()
+        text = QtWidgets.QGraphicsTextItem(str(text))
+        font = QtWidgets.QFont()
         font.setPointSize(30)
         text.setFont(font)
         text.setDefaultTextColor(QtCore.Qt.yellow)
@@ -102,39 +103,39 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self.annotation_items.addToGroup(text)
 
     def add_outline(self, stain):
-        poly = QtGui.QPolygonF()
+        poly = QtWidgets.QPolygonF()
         for pt in stain.contour.tolist():
             poly.append(QtCore.QPointF(*pt[0]))
-        outline = QtGui.QGraphicsPolygonItem(poly)
-        pen = QtGui.QPen(QtCore.Qt.magenta)
+        outline = QtWidgets.QGraphicsPolygonItem(poly)
+        pen = QtWidgets.QPen(QtCore.Qt.magenta)
         pen.setWidth(3)
         outline.setPen(pen)
         self.annotation_items.addToGroup(outline)
 
     def add_direction_line(self, stain):
         if stain.major_axis:
-            poly = QtGui.QPolygonF()
+            poly = QtWidgets.QPolygonF()
             poly.append(QtCore.QPointF(*stain.major_axis[0]))
             poly.append(QtCore.QPointF(*stain.major_axis[1]))
-            line = QtGui.QGraphicsPolygonItem(poly)
-            pen = QtGui.QPen(QtCore.Qt.darkBlue)
+            line = QtWidgets.QGraphicsPolygonItem(poly)
+            pen = QtWidgets.QPen(QtCore.Qt.darkBlue)
             pen.setWidth(2)
             line.setPen(pen)
             self.annotation_items.addToGroup(line)
 
     def add_center(self, stain):
-        center = QtGui.QGraphicsEllipseItem(stain.position[0], stain.position[1], 1, 1)
-        pen = QtGui.QPen(QtCore.Qt.white)
+        center = QtWidgets.QGraphicsEllipseItem(stain.position[0], stain.position[1], 1, 1)
+        pen = QtWidgets.QPen(QtCore.Qt.white)
         pen.setWidth(3)
         center.setPen(pen)
         self.annotation_items.addToGroup(center)
 
     def add_ellipse(self, stain):
         if stain.ellipse != None:
-            ellipse = QtGui.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
+            ellipse = QtWidgets.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
             ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
             ellipse.setRotation(stain.angle)
-            pen = QtGui.QPen(QtCore.Qt.green)
+            pen = QtWidgets.QPen(QtCore.Qt.green)
             pen.setWidth(3)
             ellipse.setPen(pen)
             self.annotation_items.addToGroup(ellipse)
@@ -142,7 +143,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
     def add_annotations(self, annotations, pattern):
         self._scene.removeItem(self.annotation_items)
         self._scene.update()
-        self.annotation_items = QtGui.QGraphicsItemGroup(scene=self._scene)
+        self.annotation_items = QtWidgets.QGraphicsItemGroup(scene=self._scene)
         for stain in pattern.stains:
             text = ""
             if annotations['outline']:
