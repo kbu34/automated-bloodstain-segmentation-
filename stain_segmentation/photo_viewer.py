@@ -56,10 +56,11 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def wheelEvent(self, event):
         if self.hasPhoto():
-            if event.pixelDelta().y() > 0:
+
+            if event.angleDelta().y() > 0:
                 factor = 1.25
                 self._zoom += 1
-            else:
+            elif event.angleDelta().y() < 0:
                 factor = 0.8
                 self._zoom -= 1
             if self._zoom > 0:
@@ -94,7 +95,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def add_text(self, stain, text):
         text = QtWidgets.QGraphicsTextItem(str(text))
-        font = QtWidgets.QFont()
+        font = QtGui.QFont()
         font.setPointSize(30)
         text.setFont(font)
         text.setDefaultTextColor(QtCore.Qt.yellow)
