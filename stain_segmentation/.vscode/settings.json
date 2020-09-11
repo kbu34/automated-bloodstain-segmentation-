@@ -1,0 +1,4 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.pythonPath": "/home/cosc/student/rmr86/miniconda3/bin/python"
+}

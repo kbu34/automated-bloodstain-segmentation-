@@ -1,9 +1,10 @@
-from PyQt4 import QtCore, QtGui
+from PyQt5 import QtCore, QtGui
+from PyQt5 import QtWidgets
 
 
 # Rosalyn was here
 
-class PhotoViewer(QtGui.QGraphicsView):
+class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
 
     def __init__(self, parent):

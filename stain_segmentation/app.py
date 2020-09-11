@@ -1,6 +1,9 @@
 import sys
-from PyQt4 import QtGui
-from PyQt4 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtCore
+from PyQt5 import QtWidgets
+
+
 import main_window
 import features_dialog
 import batch_dialog
@@ -13,7 +16,7 @@ import progressbar
 import batch_process
 import time
 
-class BPA_App(QtGui.QMainWindow, main_window.Ui_MainWindow):
+class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
     def __init__(self, parent=None):
         super(BPA_App, self).__init__(parent)
         self.setupUi(self)
