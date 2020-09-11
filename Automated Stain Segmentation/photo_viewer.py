@@ -1,5 +1,8 @@
 from PyQt4 import QtCore, QtGui
 
+
+# Rosalyn was here
+
 class PhotoViewer(QtGui.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
 
