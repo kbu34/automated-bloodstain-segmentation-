@@ -8,7 +8,7 @@ def parse_args():
                         help="scale in pixels per mm", metavar="SCALE", default=7)
     
     parser.add_argument("-o", "--output", dest="output", help="folder for output (default is <file path>/output)", metavar="OUTPUT")
-    parser.add_argument("--show", default=False, help="show stain detection")
+    parser.add_argument("--show", default=False, action="store_true", help="show stain detection")
 
     return parser.parse_args()
     

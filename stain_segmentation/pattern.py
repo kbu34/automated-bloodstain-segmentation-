@@ -11,21 +11,18 @@ import time
 
 
 class Pattern:
-    def __init__(self, image, filename, scale=7.0, stains=[]):
+    def __init__(self, image, filename, scale=7.0):
         
         self.image = image
         self.name = filename
-
         self.contours = []
-        self.stains = stains
+
         self.scale = scale
         self.elliptical_stains = []
                 
         self.summary_data = []
         self.plots = {}
-        for stain in self.stains:
-            if stain.ellipse:
-                self.elliptical_stains.append(stain)
+
     
     def add_stain(self, stain):
         self.stains.append(stain)
