@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'batch_process.ui'
+# Form implementation generated from reading ui file 'ui/batch_process.ui'
 #
 # Created by: PyQt5 UI code generator 5.9.2
 #

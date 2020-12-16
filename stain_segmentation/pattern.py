@@ -16,6 +16,7 @@ class Pattern:
         self.image = image
         self.name = filename
         self.contours = []
+        self.stains = []
 
         self.scale = scale
         self.elliptical_stains = []
