@@ -4,8 +4,8 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 
 
-import main_window
-import features_dialog
+from generated import main_window, features_dialog, batch_process
+
 import batch_dialog
 from photo_viewer import PhotoViewer
 import stain_segmentation as Seg
@@ -13,7 +13,7 @@ import cv2
 from PIL import Image
 import os
 import progressbar
-import batch_process
+
 import time
 
 class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):

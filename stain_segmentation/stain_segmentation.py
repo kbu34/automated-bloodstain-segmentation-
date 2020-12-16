@@ -6,76 +6,90 @@ from matplotlib import pyplot as plt
 import bloodstain
 import json
 import csv
-from parse_arguements import parse_args
+from parse_arguments import parse_args
 from pattern import Pattern
-import progressbar
+from os import path
+import pathlib
 
+from tqdm import tqdm
 
-path = '/media/cba62/Elements/Cropped Data/'
-save_path = '/media/cba62/Elements/Result_data/'
-pattern = Pattern()
-
-def CLI(args={}):
-    args = parse_args() if not args else args
-    filename = None if not args['filename'] else path + args['filename']
-    full_path = args['full_path']
-    if full_path:
-        filename = full_path
-
-    if not filename:
-        print("No file selected")
-        return 
-    print("\nProcessing: " + filename)
-    
-    save_path = set_save_path(filename, args['output_path'])
-    pattern.scale = args['scale']
-    if pattern.scale < 1:
-        print("Warning scale is less than 1")
-    
+def process_image(filename, save_path, scale=7.0, show=False):
     image = cv2.imread(filename)
-    orginal = cv2.imread(filename)
 
     if image is None:
-        print("No image file found")
+        print("Failed to load image: ", filename)
         return
 
-    batch = args['batch']
+    output_path = path.join(save_path, path.basename(filename))
+    pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-    height, width = image.shape[:2]
-    pattern.image = image
-    pattern.name = filename
     print("Segmenting stains")
-    result = stain_segmentation(image, orginal)
+    pattern = stain_segmentation(image, output_path, filename, scale=scale)
+
     cv2.drawContours(image, pattern.contours, -1, (255,0,255), 1)
+
+    result = image.copy()
     for stain in pattern.stains:
-            stain.annotate(image)
-    if not batch:
+        stain.annotate(result)
+
+    if show:
         result_preview(result)
-    cv2.imwrite(save_path + '-result.jpg', result)
+
+    cv2.imwrite(path.join(output_path, 'result.jpg'), result)
     print("Analysing Stains")
-    export_stain_data(save_path)
-    export_obj(save_path, width, height)
+    export_stain_data(output_path, pattern)
+
+    
+    export_obj(output_path, pattern)
+
     print("\nCalculating Pattern Metrics")
     to_calculate= {'linearity': True, 
                  'convergence': True, 'distribution': True}
-    pattern.export(save_path, to_calculate, batch)
-    print("\nResults found in files beginning: " + save_path)
+    pattern.export(output_path, to_calculate)
+
+
+image_types = ['.jpg', '.jpeg', '.gif', '.png', '.tif', '.tiff']
+def find_images(folder, file_types=image_types):
+    images = []
+    files = os.listdir(folder)
+    for file in files:
+        _, ext = path.splitext(file) 
+        if ext.lower() in file_types:
+            images.append(path.join(folder, file))
+    return images
+
+def CLI(args={}):
+    args = parse_args() if not args else args
+
+    if args.scale < 1:
+        print("Warning scale is less than 1")
+
+    if path.isfile(args.filename):
+        save_path = args.output or path.join(path.dirname(args.filename), "output")
+        print(f"Processing {args.filename}, output path: {save_path}")
+
+        process_image(args.filename, save_path, args.scale, args.show)
+
+    elif path.isdir(args.filename):
+        save_path = args.output or path.join(args.filename, "output")
+
+        image_files = find_images(args.filename)
+        print(f"Batch processing {args.filename}, found {len(image_files)} image files, output path: {save_path}")
+        
+        for i, image_file in enumerate(image_files):
+            print(f"Processing image {i}/{len(image_files)}: {args.filename}")
+            process_image(image_file, save_path, args.scale, args.show)
+
+    else:
+        assert False, f"{args.filename} does not exist"
+
     print("Done :)")
 
-
-def set_save_path(full_path, output_path):
-    if output_path:
-        return output_path 
     
-    if full_path:
-        save_path = os.path.splitext(full_path)[0]
-    else:
-        save_path =  '/media/cba62/Elements/Result_data/' + full_path
-    save_path = os.path.splitext(save_path)[0]
-    return save_path
 
-def stain_segmentation(image, orginal):
-    pattern.clear_data()
+def stain_segmentation(image, output_path,  filename, scale=7.0):
+    pattern = Pattern(image, filename, scale=scale)
+    
     hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     blur = cv2.GaussianBlur(image, (3,3), 0)
@@ -85,17 +99,18 @@ def stain_segmentation(image, orginal):
     thresh = binarize_image(image, gray)
     # cv2.imwrite('./binary.jpg', thresh) # uncomment to export a binary image
 
-    hist = cv2.calcHist( [gray_hsv], [0], None, [256], [0, 256] )
+    # hist = cv2.calcHist( [gray_hsv], [0], None, [256], [0, 256] )
     remove_circle_markers(gray, thresh)
-    kernel = np.ones((3,3),np.uint8)
-    cv2.imwrite('./flipped' + '-binary.jpg', thresh)
+    # kernel = np.ones((3,3),np.uint8)
+    cv2.imwrite(path.join(output_path, 'flipped-binary.jpg'), thresh)
 
     im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
-    analyseContours(contours, hierarchy, orginal, image, pattern.scale)
-    
-    return image
+    analyseContours(pattern, contours, hierarchy, image, pattern.scale)
 
-def analyseContours(contours, hierarchy, orginal, image, scale):
+    return pattern
+    
+
+def analyseContours(pattern, contours, hierarchy, image, scale):
     count = 0
     outer_contours = []
     for i in range(len(contours)):
@@ -103,33 +118,38 @@ def analyseContours(contours, hierarchy, orginal, image, scale):
         if hierarchy[0,i,3] == -1:
             outer_contours.append(contour)
             if cv2.contourArea(contour) > 5:
-                stain = bloodstain.Stain(count, contour, scale, orginal)
+                stain = bloodstain.Stain(count, contour, scale, image)
                 pattern.add_stain(stain)
                 count += 1
     pattern.contours = outer_contours  
+
     print("Found {} stains".format(count))
 
-def export_stain_data(save_path, progressBar=False):    
-    with open(save_path + '_data.csv', 'w', newline='') as csvfile:
+def export_stain_data(save_path, pattern):    
+    data_file = path.join(save_path, 'data.csv')
+    csv_file = path.join(save_path, "stains.csv")
+
+    with open(data_file, 'w', newline='') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
         data_writer.writerow(["id", "position x", "position y", "area px", "area_mm", "width ellipse", "height ellipse", \
                         "angle", "gamma", "direction", "solidity", "circularity", "intensity"])
-        with open(save_path + "_stains.csv", 'w') as point_file:
+        with open(csv_file, 'w') as point_file:
             points_writer = csv.writer(point_file, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
             i = 0
-            for stain in progressbar.progressbar(pattern.stains):
+            for stain in tqdm(pattern.stains):
                 stain.write_data(data_writer)
                 points_writer.writerow(stain.label())
-                if (progressBar):
-                    i += (1 / len(pattern.stains)) * 50
-                    progressBar.setValue(i)
 
-def export_obj(save_path, width, height):
-    file_name = os.path.splitext(save_path)[0]
+
+def export_obj(save_path, pattern):
+    height, width, _ = pattern.image.shape
+
+    file_name = path.join(save_path,  'points.pts')
     print("save path:", file_name)
-    with open(file_name + '_points.pts', 'w', newline='') as f:
+
+    with open(file_name, 'w', newline='') as f:
         for stain in pattern.stains:
             f.write(stain.obj_format(width, height) )
 
@@ -161,7 +181,7 @@ def binarize_image(img_original, gray) :
 
     return cv2.bitwise_not(dilation)
 
-def label_stains():
+def label_stains(pattern):
     ''' Not used for research purposes to export json in readable format 
     for instance segmenation labelling tool 'label me' '''
 
@@ -177,7 +197,7 @@ def label_stains():
 
     mask_filename = path + os.path.splitext(sys.argv[1])[0] + '.json'
     with open(mask_filename, 'w') as outfile:
-        json.dump(stain.label())
+        json.dump(labels)
 
 def show_intentsity_histogram(img):
     ''' Not used for research purposes'''

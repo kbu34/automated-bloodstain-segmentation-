@@ -11,14 +11,16 @@ import time
 
 
 class Pattern:
+    def __init__(self, image, filename, scale=7.0, stains=[]):
+        
+        self.image = image
+        self.name = filename
 
-    def __init__(self, stains=[]):
         self.contours = []
         self.stains = stains
-        self.scale = 7.0
+        self.scale = scale
         self.elliptical_stains = []
-        self.image = None
-        self.name = ""
+                
         self.summary_data = []
         self.plots = {}
         for stain in self.stains:
@@ -33,7 +35,9 @@ class Pattern:
     def convergence(self):
         height, width = self.image.shape[:2]
         intersects = []
-        stains = sorted(self.elliptical_stains, key= lambda s: s.major_axis[0])
+        stains = [stain for stain in self.elliptical_stains if stain.major_axis is not None ]
+
+        stains = sorted(stains, key= lambda s: s.major_axis[0])
         for i in range(len(stains) - 1):
             axis = stains[i].major_axis
             j = i + 1
@@ -47,11 +51,12 @@ class Pattern:
 
         return self.plot_convergence(intersects)
 
-    def plot_convergence(self, intersects):
+    def plot_convergence(self, intersects, figsize=(18, 12)):
         if len(intersects):
             x = [i[0] for i in intersects]
             y = [j[1] for j in intersects]
-            fig = plt.figure()
+            fig = plt.figure(figsize=figsize)
+
             fig.canvas.set_window_title('Convergence ' + self.name)
             self.plots['convergence'] = fig
             ax1 = fig.add_subplot(211)
@@ -123,10 +128,11 @@ class Pattern:
         y = det(d, ydiff) / div
         return x, y
     
-    def linearity(self):
+    def linearity(self,  figsize=(18, 12)):
         stain_centers_x = np.array([stain.position[0] for stain in self.stains])
         stain_centers_y = np.array([stain.position[1] for stain in self.stains])
-        fig = plt.figure()
+
+        fig = plt.figure(figsize=figsize)
         fig.canvas.set_window_title('Linearity ' + self.name)
         self.plots['linearity'] = fig
 
@@ -152,7 +158,7 @@ class Pattern:
         str_poly = str_poly[:squared_term] + "^2" + str_poly[squared_term:]
         return str_poly, r_squared        
 
-    def distribution(self):
+    def distribution(self,  figsize=(18, 12)):
         stain_number = len(self.stains)
         stains_area = 0
         points = []
@@ -162,7 +168,7 @@ class Pattern:
         points = np.array(points)
         hull = ConvexHull(points)
 
-        fig = plt.figure()
+        fig = plt.figure(figsize=figsize)
         fig.canvas.set_window_title('Distribution ' + self.name)
         self.plots['distribution'] = fig
 
@@ -182,25 +188,27 @@ class Pattern:
         
         return ratio_stain_number, ratio_stain_area
 
-    def calculate_summary_data(self, to_calculate, batch=False):
-        bar = progressbar.ProgressBar(max_value=3)
+    def calculate_summary_data(self, to_calculate):
         poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6
-        bar.update(0)
         
         if to_calculate['linearity']:
+            print("computing linearity...")
+
             a = time.time()
             poly, r_squared = self.linearity()
             r_squared = "{:.4f}".format(r_squared)
-        bar.update(1)
         
         if to_calculate['distribution']:
+            print("computing distribution...")
+
             a = time.time()
             ratio_stain_number, ratio_stain_area = self.distribution()
             ratio_stain_area = "{:.3e}".format(ratio_stain_area)
             ratio_stain_number = "{:.3e}".format(ratio_stain_number)
-        bar.update(2)
 
         if to_calculate['convergence']:
+            print("computing convergence...")
+            
             a = time.time()
             box, convergence_point = self.convergence()
             if convergence_point == None:
@@ -211,25 +219,21 @@ class Pattern:
                     box.get_x(), box.get_y(), box.get_width(), box.get_height())
                 str_convergence = "({:.1f}, {:.1f})".format(*convergence_point)
 
-        bar.update(3)
-        if not batch:
-            plt.show()
+ 
         self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box]
         return self.summary_data
 
-    def get_summary_data(self, to_calculate, batch=False):
-        return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(to_calculate, batch)
+    def get_summary_data(self, to_calculate):
+        return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(to_calculate)
         
-    def clear_data(self):
-        self.stains = []
-        self.summary_data = []   
-        self.plots = {}
 
-    def export(self, save_path, metrics, batch=False):
-        file_name = os.path.splitext(save_path)[0]
+    def export(self, save_path, metrics):
+        pattern_file = os.path.join(save_path, 'pattern.csv')
+
         a = time.time()
-        data = self.get_summary_data(metrics, batch)
-        with open(file_name + '_pattern.csv', 'w', newline='') as csvfile:
+        data = self.get_summary_data(metrics)
+        
+        with open(pattern_file, 'w', newline='') as csvfile:
             data_writer = csv.writer(csvfile, delimiter=',',
                                     quotechar='"', quoting=csv.QUOTE_MINIMAL)
             metrics = ["Linearity - Polyline fit", "R^2", "Distribution - ratio stain number to convex hull area", 
@@ -238,11 +242,6 @@ class Pattern:
                 data_writer.writerow([metrics[i], data[i]])
     
         for name, figure in self.plots.items():
-            figure.savefig(file_name + "_" + name + ".png")
-        
-
-
-
-
-
+            figure_file = os.path.join(save_path, name + ".pdf")
+            figure.savefig(figure_file)
         

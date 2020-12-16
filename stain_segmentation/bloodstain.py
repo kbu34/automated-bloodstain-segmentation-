@@ -3,18 +3,21 @@ import json
 import numpy as np
 import csv
 
+
+
 class Stain:
 
-    def __init__(self, id, contour, scale, original): 
+    def __init__(self, id, contour, scale, image): 
         self.contour = contour
         self.id = id
         moment = cv2.moments(contour)
-        self.original = original
+        self.image = image
         self.position = (int(moment['m10'] / moment['m00']), int(moment['m01'] / moment['m00'])) if moment['m00'] > 0 else (10,10)
         self.area = cv2.contourArea(self.contour)
         self.area_mm = self.area * (1 / scale ** 2)
         self.ellipse, self.c = self.fit_ellipse()
         self.major_axis = None
+
         if self.ellipse is not None:
             (self.x_ellipse, self.y_ellipse), (self.width, self.height), self.angle = self.ellipse
             self.major_axis = self.calculate_major_axis()
@@ -23,9 +26,6 @@ class Stain:
         
     def fit_ellipse(self):
         contour = self.contour
-        offset = 0
-        minus_offset = 0
-        add_offset = 0
         if len(self.contour) >= 5 and self.area > 9:
             max_dist = 0
             extreme_i = 0
@@ -38,6 +38,7 @@ class Stain:
                 
             hull = cv2.convexHull(contour,returnPoints = False)
             concave_sections = cv2.convexityDefects(contour, hull)
+
             concave_pts = []
             if concave_sections is not None:
                 for i in range(concave_sections.shape[0]-1):
@@ -152,8 +153,8 @@ class Stain:
         direction = self.direction()
 
         if self.angle:
-            pty = np.cos(np.deg2rad(self.angle)) * self.original.shape[1]
-            ptx = np.sin(np.deg2rad(self.angle)) * self.original.shape[0]
+            pty = np.cos(np.deg2rad(self.angle)) * self.image.shape[1]
+            ptx = np.sin(np.deg2rad(self.angle)) * self.image.shape[0]
             x0 = int(x + ptx)
             x1 = int(x - ptx)
             y0 = int(y - pty)
@@ -180,7 +181,7 @@ class Stain:
 
 
     def intensity(self, image):
-        grey = cv2.cvtColor(self.original, cv2.COLOR_BGR2GRAY)
+        grey = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         mask = np.zeros(grey.shape, np.uint8)
         cv2.drawContours(mask, [self.contour], 0, 255, -1)
         intensity = cv2.mean(grey, mask=mask)
@@ -229,7 +230,7 @@ class Stain:
 
     def get_summary_data(self):
         summary_data = [self.id, self.position[0], self.position[1], int(self.area), self.area_mm, self.width, self.height, \
-                self.orientaton()[0], self.orientaton()[1], str(self.direction()), self.solidity(), self.circularity(), self.intensity(self.original)]
+                self.orientaton()[0], self.orientaton()[1], str(self.direction()), self.solidity(), self.circularity(), self.intensity(self.image)]
         formatted = []
         for data in summary_data:
             if (data == float('inf')):
