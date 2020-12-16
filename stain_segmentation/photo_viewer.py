@@ -1,8 +1,5 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5 import QtWidgets
 
-
-# Rosalyn was here
 
 class PhotoViewer(QtWidgets.QGraphicsView):
     photoClicked = QtCore.pyqtSignal(QtCore.QPoint)
@@ -51,7 +48,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         else:
             self._empty = True
             self.setDragMode(QtWidgets.QGraphicsView.NoDrag)
-            self._photo.setPixmap(QtWidgets.QPixmap())
+            self._photo.setPixmap(QtGui.QPixmap())
         self.fitInView()
 
     def wheelEvent(self, event):

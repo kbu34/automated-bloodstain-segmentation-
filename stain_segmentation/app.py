@@ -37,11 +37,18 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         self.pattern_metrics = True
 
     def load_image(self):
-        self.file_name = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
-         'c:\\',"Image files (*.jpg *.gif *.png *.tif)")
-        if self.file_name:
-            self.viewer.setPhoto(pixmap=QtGui.QPixmap(self.file_name))
-            self.setWindowTitle("ABPA - " + self.file_name)
+        file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
+            os.path.dirname(self.file_name), "Image files (*.jpg *.gif *.png *.tif)")       
+
+        if file_name:
+            self.open_image(file_name)
+
+    def open_image(self, file_name):
+        self.file_name = file_name
+        
+        self.viewer.setPhoto(pixmap=QtGui.QPixmap(self.file_name))
+        self.setWindowTitle("ABPA - " + self.file_name)
+
 
     def export(self):
         save_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Open file', 
@@ -198,8 +205,8 @@ def main():
     gui = BPA_App()
     gui.show()
 
-    filename="/media/rmr86/Elements/Roz/Cropped_spitting/Cropped_spitting_Exp25_panorama.jpg"
-    gui.viewer.setPhoto(pixmap=QtGui.QPixmap(filename))
+    file_name="/media/rmr86/Elements/Roz/Cropped_spitting/Cropped_spitting_Exp25_panorama.jpg"
+    gui.open_image(file_name)
 
     app.exec_()
 
