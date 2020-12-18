@@ -224,8 +224,8 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     gui = BPA_App()
 
-    file_name="example/#7_cropped_ceiling_panorama.jpg"
-    gui.open_image(file_name)
+    #file_name="example/#7_cropped_ceiling_panorama.jpg"
+    #gui.open_image(file_name)
 
     gui.show()
     app.exec_()
