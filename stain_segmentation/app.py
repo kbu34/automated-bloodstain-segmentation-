@@ -41,6 +41,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         self.pattern_metrics = True
 
         self.pattern = None
+        self.scale = 7.0
 
     def load_image(self):
         file_name, _ = QtWidgets.QFileDialog.getOpenFileName(self, 'Open file', 
@@ -61,8 +62,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
 
 
     def export(self):
-        save_path = QtWidgets.QFileDialog.getSaveFileName(self, 'Open file', '')
-        if save_path:
+        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Open file', '')
+        if save_path != '':
             save_path = os.path.splitext(save_path)[0]
             self.progressBar.show()
             self.progressBar.setValue(0)
@@ -78,8 +79,11 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
             self.progressBar.hide()
 
     def show_metrics(self):
-        Dialog = self.show_dialog(features_dialog.Ui_SegmenationMetrics(), self.segment_image)
-        Dialog.exec_()
+        if self.file_name != "":
+            Dialog = self.show_dialog(features_dialog.Ui_SegmenationMetrics(), self.segment_image)
+            Dialog.exec_()
+        else:
+            QtWidgets.QMessageBox.warning(self, "Warning", "You must load an image first")
 
     def show_dialog(self, dialog, accept):
         Dialog = QtWidgets.QDialog()

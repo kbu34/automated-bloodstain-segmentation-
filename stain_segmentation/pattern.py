@@ -6,14 +6,14 @@ from scipy.spatial import ConvexHull
 import cv2
 import os
 import csv
-import progressbar
 import time
 
 
 class Pattern:
-    def __init__(self, image, filename, scale=7.0):
+    def __init__(self, image, thresh, filename, scale=7.0):
         
         self.image = image
+        self.thresh = thresh
         self.name = filename
         self.contours = []
         self.stains = []
@@ -187,8 +187,8 @@ class Pattern:
         return ratio_stain_number, ratio_stain_area
 
     def calculate_summary_data(self, to_calculate):
-        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6
-        
+        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6       
+
         if to_calculate['linearity']:
             print("computing linearity...")
 
@@ -225,12 +225,10 @@ class Pattern:
         return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(to_calculate)
         
 
-    def export(self, save_path, options):
+    def export(self, data, save_path, options):
         pattern_file = os.path.join(save_path, 'pattern.csv')
 
-        a = time.time()
-        data = self.get_summary_data(options)
-        
+                
         with open(pattern_file, 'w', newline='') as csvfile:
             data_writer = csv.writer(csvfile, delimiter=',',
                                     quotechar='"', quoting=csv.QUOTE_MINIMAL)

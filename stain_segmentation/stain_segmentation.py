@@ -26,26 +26,34 @@ def process_image(filename, save_path, scale=7.0, show=False, options=None):
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
     print("Segmenting stains")
-    pattern = stain_segmentation(image, output_path, filename, scale=scale)
+    pattern = stain_segmentation(image, filename, scale=scale)
 
-    cv2.drawContours(image, pattern.contours, -1, (255,0,255), 1)
+    print("\nCalculating Pattern Metrics")
+    pattern.get_summary_data(options)
 
-    result = image.copy()
+    export_pattern(pattern, output_path)
+   
+
+
+def export_pattern(pattern, output_path):
+    cv2.drawContours(pattern.image, pattern.contours, -1, (255,0,255), 1)
+    result = pattern.image.copy()
     for stain in pattern.stains:
         stain.annotate(result)
 
     if show:
         result_preview(result)
 
+    cv2.imwrite('./binary.jpg', pattern.thresh) # uncomment to export a binary image
     cv2.imwrite(path.join(output_path, 'result.jpg'), result)
-    print("Analysing Stains")
-    export_stain_data(output_path, pattern)
 
-    
+    print("Analysing Stains")
+    export_stain_data(output_path, pattern)   
     export_obj(output_path, pattern)
 
-    print("\nCalculating Pattern Metrics")
-    pattern.export(output_path, options or default_options)
+    if pattern.data is not None:
+        pattern.export(pattern.data, output_path)
+
 
 
 image_types = ['.jpg', '.jpeg', '.gif', '.png', '.tif', '.tiff']
@@ -100,9 +108,8 @@ def CLI(args={}):
 
     
 
-def stain_segmentation(image, output_path,  filename, scale=7.0):
-    pattern = Pattern(image, filename, scale=scale)
-    
+def stain_segmentation(image, filename, scale=7.0):
+   
     hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     blur = cv2.GaussianBlur(image, (3,3), 0)
@@ -110,14 +117,11 @@ def stain_segmentation(image, output_path,  filename, scale=7.0):
     gray_hsv = cv2.cvtColor(hsv_img, cv2.COLOR_BGR2GRAY)
     
     thresh = binarize_image(image, gray)
-    # cv2.imwrite('./binary.jpg', thresh) # uncomment to export a binary image
 
-    # hist = cv2.calcHist( [gray_hsv], [0], None, [256], [0, 256] )
+    pattern = Pattern(image, thresh, filename, scale=scale)
     remove_circle_markers(gray, thresh)
-    # kernel = np.ones((3,3),np.uint8)
-    cv2.imwrite(path.join(output_path, 'flipped-binary.jpg'), thresh)
 
-    im2, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
+    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
     analyseContours(pattern, contours, hierarchy, image, pattern.scale)
 
     return pattern
