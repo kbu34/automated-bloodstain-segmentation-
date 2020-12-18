@@ -12,12 +12,14 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._photo = QtWidgets.QGraphicsPixmapItem()
         self._scene.addItem(self._photo)
         self.setScene(self._scene)
+
         self.setTransformationAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setResizeAnchor(QtWidgets.QGraphicsView.AnchorUnderMouse)
         self.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setHorizontalScrollBarPolicy(QtCore.Qt.ScrollBarAsNeeded)
         self.setBackgroundBrush(QtGui.QBrush(QtGui.QColor(30, 30, 30)))
         self.setFrameShape(QtWidgets.QFrame.NoFrame)
+        
         self.highlight = QtWidgets.QGraphicsRectItem()
         self._scene.addItem(self.highlight)
         self.annotation_items = QtWidgets.QGraphicsItemGroup()
@@ -81,7 +83,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
     def add_rectangle(self, x, y, width, height):
         self.highlight.setRect(x, y, width, height)
-        penRectangle = QtWidgets.QPen(QtCore.Qt.blue)
+        penRectangle = QtGui.QPen(QtCore.Qt.blue)
         penRectangle.setWidth(3)
         self.highlight.setPen(penRectangle)
         
@@ -98,64 +100,70 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         text.setDefaultTextColor(QtCore.Qt.yellow)
         text.setX(stain.position[0])
         text.setY(stain.position[1])
-        self.annotation_items.addToGroup(text)
+        return text
 
     def add_outline(self, stain):
-        poly = QtWidgets.QPolygonF()
+        poly = QtGui.QPolygonF()
         for pt in stain.contour.tolist():
             poly.append(QtCore.QPointF(*pt[0]))
         outline = QtWidgets.QGraphicsPolygonItem(poly)
-        pen = QtWidgets.QPen(QtCore.Qt.magenta)
+        pen = QtGui.QPen(QtCore.Qt.magenta)
         pen.setWidth(3)
         outline.setPen(pen)
-        self.annotation_items.addToGroup(outline)
+        return outline
 
     def add_direction_line(self, stain):
         if stain.major_axis:
-            poly = QtWidgets.QPolygonF()
+            poly = QtGui.QPolygonF()
             poly.append(QtCore.QPointF(*stain.major_axis[0]))
             poly.append(QtCore.QPointF(*stain.major_axis[1]))
             line = QtWidgets.QGraphicsPolygonItem(poly)
-            pen = QtWidgets.QPen(QtCore.Qt.darkBlue)
+            pen = QtGui.QPen(QtCore.Qt.darkBlue)
             pen.setWidth(2)
             line.setPen(pen)
-            self.annotation_items.addToGroup(line)
+            return line
 
     def add_center(self, stain):
         center = QtWidgets.QGraphicsEllipseItem(stain.position[0], stain.position[1], 1, 1)
-        pen = QtWidgets.QPen(QtCore.Qt.white)
+        pen = QtGui.QPen(QtCore.Qt.white)
         pen.setWidth(3)
         center.setPen(pen)
-        self.annotation_items.addToGroup(center)
+        return center
 
     def add_ellipse(self, stain):
         if stain.ellipse != None:
             ellipse = QtWidgets.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
             ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
             ellipse.setRotation(stain.angle)
-            pen = QtWidgets.QPen(QtCore.Qt.green)
+            pen = QtGui.QPen(QtCore.Qt.green)
             pen.setWidth(3)
             ellipse.setPen(pen)
-            self.annotation_items.addToGroup(ellipse)
+            return ellipse
 
     def add_annotations(self, annotations, pattern):
         self._scene.removeItem(self.annotation_items)
         self._scene.update()
-        self.annotation_items = QtWidgets.QGraphicsItemGroup(scene=self._scene)
+
+        items = []
+
         for stain in pattern.stains:
             text = ""
             if annotations['outline']:
-                self.add_outline(stain)
+                items.append(self.add_outline(stain))
             if annotations['ellipse']:
-                self.add_ellipse(stain)
+                items.append(self.add_ellipse(stain))
             if annotations['id']:
                 text += str(stain.id)
             if annotations['directionality']:
                 text += " " + str(stain.direction())
             if annotations['center']:
-                self.add_center(stain)
+                items.append(self.add_center(stain))
             if annotations['gamma']:
                 text += " " + str(stain.orientaton()[1])
             if annotations['direction_line']:
-                self.add_direction_line(stain)
-            self.add_text(stain, text)
+                items.append(self.add_direction_line(stain))
+
+            items.append(self.add_text(stain, text))
+
+        self.annotation_items = self._scene.createItemGroup(
+                [item for item in items if item is not None])

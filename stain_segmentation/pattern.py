@@ -225,11 +225,11 @@ class Pattern:
         return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(to_calculate)
         
 
-    def export(self, save_path, metrics):
+    def export(self, save_path, options):
         pattern_file = os.path.join(save_path, 'pattern.csv')
 
         a = time.time()
-        data = self.get_summary_data(metrics)
+        data = self.get_summary_data(options)
         
         with open(pattern_file, 'w', newline='') as csvfile:
             data_writer = csv.writer(csvfile, delimiter=',',

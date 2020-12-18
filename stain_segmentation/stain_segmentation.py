@@ -13,7 +13,9 @@ import pathlib
 
 from tqdm import tqdm
 
-def process_image(filename, save_path, scale=7.0, show=False):
+default_options = {'linearity': True, 'convergence': True, 'distribution': True}
+
+def process_image(filename, save_path, scale=7.0, show=False, options=None):
     image = cv2.imread(filename)
 
     if image is None:
@@ -43,9 +45,7 @@ def process_image(filename, save_path, scale=7.0, show=False):
     export_obj(output_path, pattern)
 
     print("\nCalculating Pattern Metrics")
-    to_calculate= {'linearity': True, 
-                 'convergence': True, 'distribution': True}
-    pattern.export(output_path, to_calculate)
+    pattern.export(output_path, options or default_options)
 
 
 image_types = ['.jpg', '.jpeg', '.gif', '.png', '.tif', '.tiff']
@@ -58,8 +58,29 @@ def find_images(folder, file_types=image_types):
             images.append(path.join(folder, file))
     return images
 
+
+
+
+def batch_process(input_path, output_path=None, scale=7.0, show=False, options=None):
+    save_path = output_path or path.join(input_path, "output")
+
+    image_files = find_images(input_path)
+    print(f"Batch processing {input_path}, found {len(image_files)} image files, output path: {save_path}")
+    
+    for i, image_file in enumerate(image_files):
+        print(f"Processing image {i}/{len(image_files)}: {input_path}")
+        process_image(image_file, save_path, scale, show, options=options)
+
+
+
 def CLI(args={}):
     args = parse_args() if not args else args
+
+    options = dict(
+        convergence = not args.no_convergence,
+        linearity = not args.no_linearity,
+        distribution = not args.no_distribution,
+    )
 
     if args.scale < 1:
         print("Warning scale is less than 1")
@@ -68,18 +89,10 @@ def CLI(args={}):
         save_path = args.output or path.join(path.dirname(args.filename), "output")
         print(f"Processing {args.filename}, output path: {save_path}")
 
-        process_image(args.filename, save_path, args.scale, args.show)
+        process_image(args.filename, save_path, args.scale, args.show, options=options)
 
     elif path.isdir(args.filename):
-        save_path = args.output or path.join(args.filename, "output")
-
-        image_files = find_images(args.filename)
-        print(f"Batch processing {args.filename}, found {len(image_files)} image files, output path: {save_path}")
-        
-        for i, image_file in enumerate(image_files):
-            print(f"Processing image {i}/{len(image_files)}: {args.filename}")
-            process_image(image_file, save_path, args.scale, args.show)
-
+        batch_process(args.filename, args.output, args.scale, args.show, options=options)
     else:
         assert False, f"{args.filename} does not exist"
 
