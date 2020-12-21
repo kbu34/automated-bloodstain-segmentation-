@@ -107,6 +107,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
 
     def segment_image(self):
         if self.file_name != "":
+            
             self.progressBar.show()
             self.progressBar.setValue(0)
             image = cv2.imread(str(self.file_name))

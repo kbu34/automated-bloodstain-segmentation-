@@ -32,7 +32,6 @@ def process_image(filename, output_path, scale=7.0, show=False, pattern_metrics=
         result_preview(stain_overlay)
 
     export_pattern(pattern, stain_overlay, output_path)
-
     plt.close('all')
    
 
