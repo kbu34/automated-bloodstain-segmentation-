@@ -94,10 +94,11 @@ def stain_segmentation(image, filename, scale=7.0):
 
     blur = cv2.GaussianBlur(image, (3,3), 0)
     gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)   
-    thresh = binarize_image(image, gray)
+    thresh = binarize_image(gray)
 
     pattern = Pattern(image, thresh, filename, scale=scale)
     remove_circle_markers(gray, thresh)
+
 
     *_, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
     analyseContours(pattern, contours, hierarchy, image, pattern.scale)
@@ -113,9 +114,13 @@ def analyseContours(pattern, contours, hierarchy, image, scale):
         if hierarchy[0,i,3] == -1:
             outer_contours.append(contour)
             if cv2.contourArea(contour) > 5:
-                stain = bloodstain.Stain(count, contour, scale, image)
-                pattern.add_stain(stain)
-                count += 1
+                try:
+                    stain = bloodstain.Stain(count, contour, scale, image)
+                    pattern.add_stain(stain)
+                    count += 1
+                except cv2.error as e:
+                    print("analyseContours: " + str(e))
+                    
     pattern.contours = outer_contours  
 
     print("Found {} stains".format(count))
@@ -168,9 +173,10 @@ def remove_circle_markers(gray, img):
             cv2.circle(img, (i[0],i[1]),i[2] + 10, (0,0,0), -2)
 
 
-def binarize_image(img_original, gray) :
+def binarize_image(gray) :
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 99, 10)
     kernel = np.ones((3,3),np.uint8)
+
     erosion = cv2.erode(thresh, kernel, iterations = 2)
     dilation = cv2.dilate(erosion, kernel, iterations = 2)
 
