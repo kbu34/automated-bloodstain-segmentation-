@@ -194,20 +194,20 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         Dialog.exec_()
         
     def open_folder(self):
-        folder_name = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', '', QtWidgets.QFileDialog.ShowDirsOnly)
+        folder_name = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', '', options=QtWidgets.QFileDialog.Options())
         self.batch_dialog.folder_path_edit.setText(folder_name)
 
     def output_folder(self):
-        out_folder = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', '', QtWidgets.QFileDialog.ShowDirsOnly)
+        out_folder = QtWidgets.QFileDialog.getExistingDirectory(None, 'Select a folder:', '', options=QtWidgets.QFileDialog.Options())
         self.batch_dialog.output_path_edit.setText(out_folder)
 
     def batch_process(self):
         self.progressBar.show()
         self.progressBar.setValue(0)
         folder_name = self.batch_dialog.folder_path_edit.text()
-        output_folder = self.batch_dialog.output_path_edit.text()
+        save_folder = self.batch_dialog.output_path_edit.text()
         scale = self.batch_dialog.scale_spin.value()
-        options = dict(
+        pattern_metrics = dict(
             linearity = self.batch_dialog.linearity_check.isChecked(),
             convergence = self.batch_dialog.convergence_check.isChecked(),
             distribution = self.batch_dialog.distribution_check.isChecked()
@@ -216,14 +216,14 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         if folder_name:
             image_files = Seg.find_images(folder_name)
                 
-            if output_folder == "":
-                output_folder = os.path.join(folder_name, "output")
+            if save_folder == "":
+                save_folder = os.path.join(folder_name, "output")
 
             for i, image_file in enumerate(image_files):
                 print(f"Processing image {i}/{len(image_files)}: {image_file}")
 
-                Seg.process_image(image_file, output_folder, scale, options=options)
-                self.progressBar.setValue(100.0 * (i + 1) / len(image_files))
+                Seg.process_image(image_file, os.path.join(save_folder, os.path.basename(image_file)), scale, pattern_metrics=pattern_metrics)
+                self.progressBar.setValue(int(100.0 * (i + 1) / len(image_files)))
 
             print("Done !")
         
