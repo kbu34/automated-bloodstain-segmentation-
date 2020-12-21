@@ -17,8 +17,10 @@ Open up an Anaconda shell (link in start menu). Navigate to the desired install 
 ```
 git clone https://github.com/rmrough/Automated_Bloodstain_segmentation.git
 
-cd Automated_Bloodstain_segmentation/stain_segmentation
+cd Automated_Bloodstain_segmentation
 pip install -r requirements.txt
+
+cd stain_segmentation
 ```
 
 ### UI Tool
