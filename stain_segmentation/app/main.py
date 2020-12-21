@@ -1,10 +1,10 @@
 import sys
-from PyQt5 import QtGui, QtWidgets, QtCore
+from PyQt5 import QtGui, QtWidgets
 
 from generated import main_window, features_dialog, batch_process, batch_process
 
-from photo_viewer import PhotoViewer
-import stain_segmentation as Seg
+from .photo_viewer import PhotoViewer
+import analysis.stain_segmentation as Seg
 
 import cv2
 import os
@@ -16,9 +16,22 @@ def image_to_pixmap(image):
     height, width, byteValue = image.shape
     bytesPerLine = byteValue * width
 
-    cv2.cvtColor(image, cv2.COLOR_BGR2RGB, image)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     qImg = QtGui.QImage(image.data, width, height, bytesPerLine, QtGui.QImage.Format_RGB888)
     return QtGui.QPixmap.fromImage(qImg)    
+
+def select_export_dialog(filename):
+    """
+    open or create a directory
+    """
+
+    dialog = QtWidgets.QFileDialog(None, caption='Export stain analysis')
+    dialog.setFileMode(QtWidgets.QFileDialog.Directory)
+    dialog.setDirectory(os.path.dirname(filename))
+    dialog.setLabelText(QtWidgets.QFileDialog.Accept, "Export")
+    if dialog.exec_() == QtWidgets.QFileDialog.Accepted:
+       return dialog.selectedFiles()[0]
+
 
 class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
     def __init__(self, parent=None):
@@ -61,21 +74,15 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         self.scale = 7.0
 
 
-    def export(self):
-        save_path, _ = QtWidgets.QFileDialog.getSaveFileName(self, 'Open file', '')
-        if save_path != '':
-            save_path = os.path.splitext(save_path)[0]
+    def export(self):       
+        output_path = select_export_dialog(self.file_name)
+        if output_path is not None:
             self.progressBar.show()
             self.progressBar.setValue(0)
-            Seg.export_stain_data(save_path, self.progressBar)
-            self.pattern.export(save_path, self.pattern_metrics)
-            self.progressBar.setValue(100)
 
-            cv2.cvtColor(self.result, cv2.COLOR_BGR2RGB, self.result)
-            cv2.drawContours(self.result, self.pattern.contours, -1, (255,0,255), 3)
-            for stain in self.pattern.stains:
-                stain.annotate(self.result, self.annotations)
-            cv2.imwrite(save_path + "-result.jpg", self.result)
+            Seg.export_pattern(self.pattern, stain_overlay=Seg.draw_stains(self.pattern), output_path=output_path)
+
+            self.progressBar.setValue(100)
             self.progressBar.hide()
 
     def show_metrics(self):
@@ -116,9 +123,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
                                     'distribution': self.dialog.distribution_check.isChecked()}
             a = time.time()
 
-            output_path = os.path.join(os.path.dirname(self.file_name), "output")
-            self.pattern = Seg.stain_segmentation(image, output_path, self.file_name)
-            
+            self.pattern = Seg.stain_segmentation(image, self.file_name, scale=self.scale)
+           
             print('segment time', time.time() - a)
             self.viewer.setPhoto(pixmap=image_to_pixmap(self.pattern.image))
 

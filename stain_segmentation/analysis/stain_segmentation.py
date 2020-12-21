@@ -3,56 +3,57 @@ import numpy as np
 import sys
 import os
 from matplotlib import pyplot as plt
-import bloodstain
+from . import bloodstain
 import json
 import csv
-from parse_arguments import parse_args
-from pattern import Pattern
+from .pattern import Pattern
 from os import path
-import pathlib
+import pathlib 
 
 from tqdm import tqdm
 
-default_options = {'linearity': True, 'convergence': True, 'distribution': True}
+default_metrics = {'linearity': True, 'convergence': True, 'distribution': True}
 
-def process_image(filename, save_path, scale=7.0, show=False, options=None):
+def process_image(filename, output_path, scale=7.0, show=False, pattern_metrics=None):
     image = cv2.imread(filename)
 
     if image is None:
         print("Failed to load image: ", filename)
         return
 
-    output_path = path.join(save_path, path.basename(filename))
-    pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
-
     print("Segmenting stains")
     pattern = stain_segmentation(image, filename, scale=scale)
 
     print("\nCalculating Pattern Metrics")
-    pattern.get_summary_data(options)
+    pattern.get_summary_data(pattern_metrics)
 
-    export_pattern(pattern, output_path)
+    stain_overlay = draw_stains(pattern)
+    if show:
+        result_preview(stain_overlay)
+
+    export_pattern(pattern, stain_overlay, output_path)
    
 
-
-def export_pattern(pattern, output_path):
-    cv2.drawContours(pattern.image, pattern.contours, -1, (255,0,255), 1)
-    result = pattern.image.copy()
+def draw_stains(pattern):
+    stain_overlay = pattern.image.copy()
     for stain in pattern.stains:
-        stain.annotate(result)
+        stain.annotate(stain_overlay)    
+    return stain_overlay
 
-    if show:
-        result_preview(result)
 
-    cv2.imwrite('./binary.jpg', pattern.thresh) # uncomment to export a binary image
-    cv2.imwrite(path.join(output_path, 'result.jpg'), result)
+def export_pattern(pattern, stain_overlay, output_path):
+    pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-    print("Analysing Stains")
+    cv2.drawContours(pattern.image, pattern.contours, -1, (255,0,255), 1)
+
+    cv2.imwrite(path.join(output_path,'binary.jpg'), pattern.thresh) # uncomment to export a binary image
+    cv2.imwrite(path.join(output_path, 'stain_overlay.jpg'), stain_overlay)
+
     export_stain_data(output_path, pattern)   
     export_obj(output_path, pattern)
 
-    if pattern.data is not None:
-        pattern.export(pattern.data, output_path)
+    if pattern.summary_data is not None:
+        pattern.export(pattern.summary_data, output_path)
 
 
 
@@ -69,59 +70,36 @@ def find_images(folder, file_types=image_types):
 
 
 
-def batch_process(input_path, output_path=None, scale=7.0, show=False, options=None):
+def batch_process(input_path, output_path=None, scale=7.0, show=False, overwrite=False, pattern_metrics=None):
     save_path = output_path or path.join(input_path, "output")
+    pattern_metrics = pattern_metrics or default_metrics
 
     image_files = find_images(input_path)
     print(f"Batch processing {input_path}, found {len(image_files)} image files, output path: {save_path}")
     
+    changed = 0
     for i, image_file in enumerate(image_files):
-        print(f"Processing image {i}/{len(image_files)}: {input_path}")
-        process_image(image_file, save_path, scale, show, options=options)
+        output_path = path.join(save_path, path.basename(image_file))
+
+        if not path.exists(output_path) or overwrite:
+            print(f"Processing image {i}/{len(image_files)}: {input_path}")
+            process_image(image_file, output_path, scale, show, pattern_metrics=pattern_metrics)
+            changed = changed + 1
+
+    print(f"Done - processed {changed} of {len(image_files)} (use --overwrite to force)")
 
 
-
-def CLI(args={}):
-    args = parse_args() if not args else args
-
-    options = dict(
-        convergence = not args.no_convergence,
-        linearity = not args.no_linearity,
-        distribution = not args.no_distribution,
-    )
-
-    if args.scale < 1:
-        print("Warning scale is less than 1")
-
-    if path.isfile(args.filename):
-        save_path = args.output or path.join(path.dirname(args.filename), "output")
-        print(f"Processing {args.filename}, output path: {save_path}")
-
-        process_image(args.filename, save_path, args.scale, args.show, options=options)
-
-    elif path.isdir(args.filename):
-        batch_process(args.filename, args.output, args.scale, args.show, options=options)
-    else:
-        assert False, f"{args.filename} does not exist"
-
-    print("Done :)")
-
-    
 
 def stain_segmentation(image, filename, scale=7.0):
-   
-    hsv_img = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
     blur = cv2.GaussianBlur(image, (3,3), 0)
-    gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
-    gray_hsv = cv2.cvtColor(hsv_img, cv2.COLOR_BGR2GRAY)
-    
+    gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)   
     thresh = binarize_image(image, gray)
 
     pattern = Pattern(image, thresh, filename, scale=scale)
     remove_circle_markers(gray, thresh)
 
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
+    *_, contours, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)     
     analyseContours(pattern, contours, hierarchy, image, pattern.scale)
 
     return pattern
@@ -154,7 +132,7 @@ def export_stain_data(save_path, pattern):
         with open(csv_file, 'w') as point_file:
             points_writer = csv.writer(point_file, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-            i = 0
+            
             for stain in tqdm(pattern.stains):
                 stain.write_data(data_writer)
                 points_writer.writerow(stain.label())
@@ -223,5 +201,3 @@ def show_intentsity_histogram(img):
     plt.xlim([0, 360])
     plt.show()
 
-if __name__ == '__main__':
-    CLI()

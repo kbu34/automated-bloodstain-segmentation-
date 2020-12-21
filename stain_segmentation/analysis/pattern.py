@@ -186,17 +186,17 @@ class Pattern:
         
         return ratio_stain_number, ratio_stain_area
 
-    def calculate_summary_data(self, to_calculate):
+    def calculate_summary_data(self, pattern_metrics):
         poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6       
 
-        if to_calculate['linearity']:
+        if pattern_metrics['linearity']:
             print("computing linearity...")
 
             a = time.time()
             poly, r_squared = self.linearity()
             r_squared = "{:.4f}".format(r_squared)
         
-        if to_calculate['distribution']:
+        if pattern_metrics['distribution']:
             print("computing distribution...")
 
             a = time.time()
@@ -204,7 +204,7 @@ class Pattern:
             ratio_stain_area = "{:.3e}".format(ratio_stain_area)
             ratio_stain_number = "{:.3e}".format(ratio_stain_number)
 
-        if to_calculate['convergence']:
+        if pattern_metrics['convergence']:
             print("computing convergence...")
             
             a = time.time()
@@ -221,11 +221,11 @@ class Pattern:
         self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box]
         return self.summary_data
 
-    def get_summary_data(self, to_calculate):
-        return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(to_calculate)
+    def get_summary_data(self, pattern_metrics):
+        return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(pattern_metrics)
         
 
-    def export(self, data, save_path, options):
+    def export(self, summary_data, save_path):
         pattern_file = os.path.join(save_path, 'pattern.csv')
 
                 
@@ -235,7 +235,7 @@ class Pattern:
             metrics = ["Linearity - Polyline fit", "R^2", "Distribution - ratio stain number to convex hull area", 
                                     "ratio stain area to convex hull area", "Convergence - point of highest density", "box of %60 of intersections"]
             for i in range(len(metrics)):
-                data_writer.writerow([metrics[i], data[i]])
+                data_writer.writerow([metrics[i], summary_data[i]])
     
         for name, figure in self.plots.items():
             figure_file = os.path.join(save_path, name + ".pdf")
