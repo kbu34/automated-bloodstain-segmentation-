@@ -6,27 +6,56 @@ It provides automatic dectection and segmentation of stains then various stain a
 
 Includes a table view and annotated image view.
 
-# To Run
 
-Depends on python3, opencv, matplotlib, numpy, pyqt4, progressbar, scipy
+# Windows install
+
+Requirements:
+ - miniconda3 [https://docs.conda.io/en/latest/miniconda.html] (windows 64 bit, python 3.7). 
+ - git (if in windows)[https://git-scm.com/downloads]
+
+Open up an Anaconda shell (link in start menu). Navigate to the desired install location.
+```
+git clone https://github.com/rmrough/Automated_Bloodstain_segmentation.git
+
+cd Automated_Bloodstain_segmentation/stain_segmentation
+pip install -r requirements.txt
+```
 
 ### UI Tool
 
-<code> python app.py </code>
+```
+python -m app.main
+```
+
 
 ### Command line interface
-Analyse on image 
+Analyse single image 
+```
+python -m scripts.analysis my_image.jpg -s 7.0
+```
 
-<code> python stain_segmentation.py -f [file from base] -F [full file path] -o [output path] -b [True | False] -s [scale] </code>
- 
- see --help for details
-  
+
 ### Batch Processing
-Analyse a folder of images
+Analyse a folder of images, example:
+```
+python -m scripts.analysis my_folder/ -s 7.0 --overwrite
+```
 
-<code> python batch_processing.py -F [path to folder] -o [output folder] -s [scale]
 
-see --help for details
+### Options
+```
+optional arguments:
+  -h, --help            show this help message and exit
+  -s SCALE, --scale SCALE
+                        scale in pixels per mm
+  -o OUTPUT, --output OUTPUT
+                        folder for output (default is <file path>/output)
+  --show                show stain detection
+  --no-linearity        disable linearity computation
+  --no-distribution     disable distribution computation
+  --no-convergence      disable convergence computation
+  --overwrite           overwrite output folder
+```
 
 # CNN Pattern Classifcation
 Included in this repo there is an implementation for a converlotional neural network that classifies between Cast off, expirated and impact patterns.
