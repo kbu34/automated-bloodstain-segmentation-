@@ -7,15 +7,15 @@ It provides automatic dectection and segmentation of stains then various stain a
 Includes a table view and annotated image view.
 
 
-# Windows install
+# Windows/Linux/MacOS install
 
 Requirements:
- - miniconda3 [https://docs.conda.io/en/latest/miniconda.html] (windows 64 bit, python 3.7). 
- - git (if in windows)[https://git-scm.com/downloads]
+ - miniconda3 [https://docs.conda.io/en/latest/miniconda.html] (64 bit, python 3.9). 
+ - git (if in Windows)[https://git-scm.com/downloads]
 
 Open up an Anaconda shell (link in start menu). Navigate to the desired install location.
 ```
-git clone https://github.com/rmrough/Automated_Bloodstain_segmentation.git
+git clone https://eng-git.canterbury.ac.nz/kbu34/automated-bloodstain-segmentation-improved.git
 
 cd Automated_Bloodstain_segmentation
 pip install -r requirements.txt

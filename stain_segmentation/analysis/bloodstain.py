@@ -73,18 +73,48 @@ class Stain:
                     (x, y), (MA, ma), angle = cv2.fitEllipse(np.array(contour))
                     A = np.pi / 4 * MA * ma
                     if A > 0 and self.area / A > 0.3: 
-                    
-                        return cv2.fitEllipse(np.array(contour)), contour
+                        e = cv2.fitEllipse(np.array(contour))
+                        _, (width, height), _ = e
+                        if width > height:
+                            print("no")
+                            print("ellipse: ", width, height)
+                        return e, contour
                     else:
-                        return cv2.minAreaRect(np.array(contour)), contour
+                        p = cv2.minAreaRect(np.array(contour))
+                        _, (width, height), _ = p
+                        if width > height:
+                            print("no")
+                            print("min: ", width, height)
+                            e = cv2.fitEllipse(np.array(contour))
+                            _, (width, height), _ = e
+                            if width > height:
+                                print("why")
+                                print("ep: ", width, height)
+                            return e, []
+                        return p, contour
             else:
                 (x, y), (MA, ma), angle = cv2.fitEllipse(np.array(self.contour))
                 A = np.pi / 4 * MA * ma
                 if A > 0 and self.area / A > 0.3: 
-                 
-                    return cv2.fitEllipse(np.array(self.contour)), []
+                    e = cv2.fitEllipse(np.array(self.contour))
+                    _, (width, height), _ = e
+                    if width > height:
+                        print("no")
+                        print("ellipse: ", width, height)
+                    return e, []
                 else:
-                    return cv2.minAreaRect(np.array(self.contour)), []
+                    p = cv2.minAreaRect(np.array(self.contour))
+                    _, (width, height), _ = p
+                    if width > height:
+                        print("no")
+                        print("minp: ", width, height)
+                        e = cv2.fitEllipse(np.array(self.contour))
+                        _, (width, height), _ = e
+                        if width > height:
+                            print("why")
+                            print("ellipse: ", width, height)
+                        return e, []
+                    return p, []
                 
         return None, []
         
