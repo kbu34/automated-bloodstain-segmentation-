@@ -2,6 +2,7 @@ import cv2
 import json
 import numpy as np
 import csv
+import math
 
 
 
@@ -124,10 +125,13 @@ class Stain:
 
     def orientaton(self):
         if self.ellipse:
-            if self.direction()[0] == "left":
-                gamma = (self.angle + 180) % 360
-            else:
-                gamma = self.angle
+            # if self.direction()[0] == "left":
+            #     gamma = (self.angle + 180) % 360
+            # else:
+            #     gamma = self.angle
+            # return [self.angle, gamma]
+            gammaRad = math.asin(self.width / self.height)
+            gamma = gammaRad * 180 / math.pi
             return [self.angle, gamma]
         return [float('inf'), float('inf')]
 
