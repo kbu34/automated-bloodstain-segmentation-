@@ -82,3 +82,5 @@ This requires the image to be cropped to 1000-1000 around the highest density of
 For more information see the report attached to this repo or email me at clairelouisebarnaby@gmail.com
 
 For further work on this repo see https://docs.google.com/document/d/1_ieyeSxFw5pi7pMLjonNRQM7eUtoN1-qwqkRn5WOLdY/edit?usp=sharing
+
+For information on the improved version contact me Phillip Kim at phillipkim156@gmail.com
