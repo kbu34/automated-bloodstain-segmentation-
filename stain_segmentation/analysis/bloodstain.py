@@ -79,14 +79,14 @@ class Stain:
                             print("ellipse: ", width, height)
                         return e, contour
                     else:
+                        # didn't understand why minAreaRect is used instead of ellipses so I made it to return ellipse
                         p = cv2.minAreaRect(np.array(contour))
                         _, (width, height), _ = p
                         if width > height:
                             print("min: ", width, height)
                             e = cv2.fitEllipse(np.array(contour))
                             _, (width, height), _ = e
-                            if width > height:
-                                print("ep: ", width, height)
+                            print("ep: ", width, height)
                             return e, []
                         return p, contour
             else:
@@ -105,8 +105,7 @@ class Stain:
                         print("minp: ", width, height)
                         e = cv2.fitEllipse(np.array(self.contour))
                         _, (width, height), _ = e
-                        if width > height:
-                            print("ellipse: ", width, height)
+                        print("ellipse: ", width, height)
                         return e, []
                     return p, []
      
@@ -253,7 +252,6 @@ class Stain:
         return str_points
 
     def get_summary_data(self):
-        print("sum")
         summary_data = [self.id, self.position[0], self.position[1], int(self.area), self.area_mm, self.width, self.height, \
                 self.orientaton()[0], self.orientaton()[1], str(self.direction()), self.solidity(), self.circularity(), self.intensity(self.image)]
         formatted = []
