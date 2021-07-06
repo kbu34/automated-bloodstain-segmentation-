@@ -22,6 +22,8 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         
         self.highlight = QtWidgets.QGraphicsRectItem()
         self._scene.addItem(self.highlight)
+        self.text = QtWidgets.QGraphicsTextItem()
+        self._scene.addItem(self.text)
         self.annotation_items = QtWidgets.QGraphicsItemGroup()
 
     def hasPhoto(self):
@@ -83,16 +85,27 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             self.photoClicked.emit(QtCore.QPoint(event.pos()))
         super(PhotoViewer, self).mousePressEvent(event)
 
-    def add_rectangle(self, x, y, width, height):
+    def add_rectangle(self, x, y, width, height, text):
         self.highlight.setRect(x, y, width, height)
         penRectangle = QtGui.QPen(QtCore.Qt.blue)
-        penRectangle.setWidth(3)
+        penRectangle.setWidth(10)
         self.highlight.setPen(penRectangle)
         
         self.fitInView()
-        self._zoom = 5
+        self._zoom = 10
+        self._scene.removeItem(self.annotation_items)
         self.scale(5 * 1.25, 5*1.25)
         self.centerOn(x, y)
+        self.set_text(x, y, text)
+
+    def set_text(self, x, y, text):
+        self.text.setPlainText(text)       
+        font = QtGui.QFont()
+        font.setPointSize(30)
+        self.text.setFont(font)
+        self.text.setDefaultTextColor(QtCore.Qt.green)
+        self.text.setX(x)
+        self.text.setY(y + 100)
 
     def add_text(self, stain, text):
         text = QtWidgets.QGraphicsTextItem(str(text))
@@ -154,8 +167,8 @@ class PhotoViewer(QtWidgets.QGraphicsView):
                 items.append(self.add_outline(stain))
             if annotations['ellipse']:
                 items.append(self.add_ellipse(stain))
-            if annotations['id']:
-                text += str(stain.id)
+            # if annotations['id']:
+            #     text += str(stain.id)
             if annotations['directionality']:
                 text += " " + str(stain.direction())
             if annotations['center']:

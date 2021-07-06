@@ -7,6 +7,11 @@ import math
 
 
 class Stain:
+    """
+	Stores the contour, fitted ellipse and calculates statistics for a single stain.
+
+	Also contains code to draw its ellipse on a given image.
+	"""
 
     def __init__(self, id, contour, scale, image): 
         self.contour = contour
@@ -26,6 +31,12 @@ class Stain:
             self.x_ellipse, self.y_ellipse, self.width, self.height, self.angle = [None] * 5
         
     def fit_ellipse(self):
+        """
+		Fits an ellipse to the contour of the stain.
+		Carries out tail-culling on the contour before fitting the ellipse.
+
+		:return: The fitted ellipse in form ((centreX, centreY), (width, height), angle)
+		"""
         contour = self.contour
         if len(self.contour) >= 5 and self.area > 9:
             max_dist = 0
@@ -80,15 +91,16 @@ class Stain:
                             print("ellipse: ", width, height)
                         return e, contour
                     else:
-                        # didn't understand why minAreaRect is used instead of ellipses so I made it to return ellipse
                         p = cv2.minAreaRect(np.array(contour))
-                        _, (width, height), _ = p
+                        a1, (width, height), a2 = p
                         if width > height:
-                            print("min: ", width, height)
-                            e = cv2.fitEllipse(np.array(contour))
-                            _, (width, height), _ = e
-                            print("ep: ", width, height)
-                            return e, []
+                            p = a1, (height, width), a2
+                        # if width > height:
+                        #     print("min: ", width, height)
+                        #     e = cv2.fitEllipse(np.array(contour))
+                        #     _, (width, height), _ = e
+                        #     print("ep: ", width, height)
+                        #     return e, []
                         return p, contour
             else:
                 (x, y), (MA, ma), angle = cv2.fitEllipse(np.array(self.contour))
@@ -102,76 +114,103 @@ class Stain:
                 else:
                     p = cv2.minAreaRect(np.array(self.contour))
                     _, (width, height), _ = p
+                    a1, (width, height), a2 = p
                     if width > height:
-                        print("minp: ", width, height)
-                        e = cv2.fitEllipse(np.array(self.contour))
-                        _, (width, height), _ = e
-                        print("ellipse: ", width, height)
-                        return e, []
+                            p = a1, (height, width), a2
+                    # if width > height:
+                    #     print("minp: ", width, height)
+                    #     e = cv2.fitEllipse(np.array(self.contour))
+                    #     _, (width, height), _ = e
+                    #     print("ellipse: ", width, height)
+                    #     return e, []
                     return p, []
      
         return None, []
         
     def draw_ellipse(self, image):
+        """
+		Draws this stain's fitted ellipse on the given image.
+
+		:param image: The image to draw on.
+		"""
 
         if self.ellipse is not None:
             cv2.ellipse(image, self.ellipse, (0,255,0), 2)
 
     def circularity(self):
+        """
+		Returns the circularity of the stain. Values closer to 0 indicate more elliptical, closer to 1 means more circular.
+
+		:return: Circularity as a scalar in the range [0, 1]
+		"""
         if self.ellipse:
             return min(self.width, self.height) / max(self.width, self.height)
         else:
             return float('inf')
 
     def orientaton(self):
+        """
+        Returns the gamma angle value of the stain. Return infinite if elipse is not found.
+        """
         if self.ellipse:
-            # if self.direction()[0] == "left":
-            #     gamma = (self.angle + 180) % 360
-            # else:
-            #     gamma = self.angle
-            # return [self.angle, gamma]
-            gammaRad = math.asin(self.width / self.height)
-            gamma = gammaRad * 180 / math.pi
+            if self.direction()[0] == "left":
+                gamma = (self.angle + 180) % 360
+            else:
+                gamma = self.angle
             return [self.angle, gamma]
         return [float('inf'), float('inf')]
 
 
     def direction(self):
-        if self.ellipse:
-            x = self.x_ellipse
-            angle = self.angle
-            left_half = []
-            right_half = []
+        """
+        Returns the direction of the stain. First value indicates the x axis direction and 
+        the second value indicates y axis direction.
+        """
+        # if self.ellipse:
+        #     x = self.x_ellipse
+        #     angle = self.angle
+        #     left_half = []
+        #     right_half = []
             
-            for pt in self.contour:
-                pt = pt[0]
-                side = (pt[0] - x)
-                if side > 1:
-                    right_half.append(pt)
-                else:
-                    left_half.append(pt)
-            left_half = np.array(left_half)
+        #     for pt in self.contour:
+        #         pt = pt[0]
+        #         side = (pt[0] - x)
+        #         if side > 1:
+        #             right_half.append(pt)
+        #         else:
+        #             left_half.append(pt)
+        #     left_half = np.array(left_half)
             
-            right_half = np.array(right_half)
+        #     right_half = np.array(right_half)
 
-        else:
-            left_half = self.contour[ : len(self.contour) // 2]
-            right_half = self.contour[len(self.contour) // 2 : ]
-            angle = float('inf')
+        # else:
+        #     left_half = self.contour[ : len(self.contour) // 2]
+        #     right_half = self.contour[len(self.contour) // 2 : ]
+        #     angle = float('inf')
         
-        if np.abs(self.area_half(left_half) - self.area_half(right_half)) <= 0.005:  
-            direction = "?"
-        elif self.area_half(left_half) < self.area_half(right_half):
-            if angle < 90:
-                direction = ("left", "down")
-            else:
-                direction = ("left", "up")
-        else:
-            if angle < 90:
-                direction = ("right", "up")
-            else:
-                direction = ("right", "down")
+        # if np.abs(self.area_half(left_half) - self.area_half(right_half)) <= 0.005:  
+        #     direction = "?"
+        # elif self.area_half(left_half) < self.area_half(right_half):
+        #     if angle < 90:
+        #         direction = ("left", "down")
+        #     else:
+        #         direction = ("left", "up")
+        # else:
+        #     if angle < 90:
+        #         direction = ("right", "up")
+        #     else:
+        #         direction = ("right", "down")
+        
+        # return direction
 
+        convex_hull = cv2.convexHull(self.contour)
+        deltas = map(lambda pt: (pt - self.position)[0], convex_hull)
+        extremity = max(deltas, key=lambda delta: math.sqrt(delta[0] ** 2 + delta[1] ** 2))
+        self.extremity = self.position + extremity
+
+        direction = [None, None]
+        direction[0] = 'left' if extremity[0] < 0 else 'right'
+        direction[1] = 'up' if extremity[1] < 0 else 'down'
         return direction
 
     def calculate_major_axis(self):
@@ -205,7 +244,6 @@ class Stain:
             if hull_half > 0:
                 return cv2.contourArea(half_contour) / hull_half
         return -1
-
 
     def intensity(self, image):
         grey = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)

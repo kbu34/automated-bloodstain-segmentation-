@@ -166,7 +166,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
     def show_stain(self, item):
         position = (int(self.tableWidget.item(item.row(), 0).text()),
                     int(self.tableWidget.item(item.row(), 1).text()))
-        self.viewer.add_rectangle(position[0] - 50, position[1] - 50, 100, 100)
+        self.viewer.add_rectangle(position[0] - 50, position[1] - 50, 100, 100, str(item.row()))
 
     def populate_pattern_table(self):
         metrics = ["Linearity - Polyline fit", "R^2", "Distribution - ratio stain number to convex hull area", 
