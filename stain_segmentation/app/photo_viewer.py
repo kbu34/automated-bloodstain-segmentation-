@@ -93,7 +93,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         
         self.fitInView()
         self._zoom = 10
-        self._scene.removeItem(self.annotation_items)
+        # self._scene.removeItem(self.annotation_items)
         self.scale(5 * 1.25, 5*1.25)
         self.centerOn(x, y)
         self.set_text(x, y, text)
@@ -103,7 +103,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         font = QtGui.QFont()
         font.setPointSize(30)
         self.text.setFont(font)
-        self.text.setDefaultTextColor(QtCore.Qt.green)
+        self.text.setDefaultTextColor(QtCore.Qt.yellow)
         self.text.setX(x)
         self.text.setY(y + 100)
 
