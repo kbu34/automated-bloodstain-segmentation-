@@ -133,7 +133,7 @@ def export_stain_data(save_path, pattern):
     with open(data_file, 'w', newline='') as csvfile:
         data_writer = csv.writer(csvfile, delimiter=',',
                                 quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        data_writer.writerow(["id", "position x", "position y", "area px", "area_mm", "width ellipse", "height ellipse", \
+        data_writer.writerow(["id", "position x", "position y", "area px", "area_mm", "width ellipse", "height ellipse", "ratio",\
                         "angle", "gamma", "direction", "solidity", "circularity", "intensity"])
         with open(csv_file, 'w') as point_file:
             points_writer = csv.writer(point_file, delimiter=',',

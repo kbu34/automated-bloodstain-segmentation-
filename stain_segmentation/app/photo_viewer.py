@@ -24,7 +24,13 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._scene.addItem(self.highlight)
         self.text = QtWidgets.QGraphicsTextItem()
         self._scene.addItem(self.text)
+        self.outline = QtWidgets.QGraphicsPolygonItem()
+        self._scene.addItem(self.outline)
+        self.ellipse = QtWidgets.QGraphicsEllipseItem()
+        self._scene.addItem(self.ellipse)
         self.annotation_items = QtWidgets.QGraphicsItemGroup()
+        self.pattern = []
+        self.annotations = []
 
     def hasPhoto(self):
         return not self._empty
@@ -85,7 +91,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             self.photoClicked.emit(QtCore.QPoint(event.pos()))
         super(PhotoViewer, self).mousePressEvent(event)
 
-    def add_rectangle(self, x, y, width, height, text):
+    def add_rectangle(self, x, y, width, height, id):
         self.highlight.setRect(x, y, width, height)
         penRectangle = QtGui.QPen(QtCore.Qt.blue)
         penRectangle.setWidth(10)
@@ -96,16 +102,47 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         # self._scene.removeItem(self.annotation_items)
         self.scale(5 * 1.25, 5*1.25)
         self.centerOn(x, y)
+        text = ""
+        if self.annotations['id']:
+            text += id
+        if self.annotations['directionality']:
+            text += " " + str(self.pattern.stains[int(id)].direction())
         self.set_text(x, y, text)
+        self.set_outline(id)
+        self.set_ellipse(id)
 
     def set_text(self, x, y, text):
-        self.text.setPlainText(text)       
+        self.text.setPlainText(text)
         font = QtGui.QFont()
         font.setPointSize(30)
         self.text.setFont(font)
         self.text.setDefaultTextColor(QtCore.Qt.yellow)
         self.text.setX(x)
         self.text.setY(y + 100)
+
+    def set_outline(self, id):
+        self._scene.removeItem(self.outline)
+        poly = QtGui.QPolygonF()
+        stain = self.pattern.stains[int(id)]
+        for pt in stain.contour.tolist():
+            poly.append(QtCore.QPointF(*pt[0]))
+        self.outline = QtWidgets.QGraphicsPolygonItem(poly)
+        pen = QtGui.QPen(QtCore.Qt.magenta)
+        pen.setWidth(1)
+        self.outline.setPen(pen)
+        self._scene.addItem(self.outline)
+
+    def set_ellipse(self, id):
+        self._scene.removeItem(self.ellipse)
+        stain = self.pattern.stains[int(id)]
+        if stain.ellipse != None:
+            self.ellipse = QtWidgets.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
+            self.ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
+            self.ellipse.setRotation(stain.angle)
+            pen = QtGui.QPen(QtCore.Qt.green)
+            pen.setWidth(1)
+            self.ellipse.setPen(pen)
+            self._scene.addItem(self.ellipse)
 
     def add_text(self, stain, text):
         text = QtWidgets.QGraphicsTextItem(str(text))
@@ -123,8 +160,9 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             poly.append(QtCore.QPointF(*pt[0]))
         outline = QtWidgets.QGraphicsPolygonItem(poly)
         pen = QtGui.QPen(QtCore.Qt.magenta)
-        pen.setWidth(3)
+        pen.setWidth(1)
         outline.setPen(pen)
+        outline.setVisible(False)
         return outline
 
     def add_direction_line(self, stain):
@@ -151,11 +189,15 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
             ellipse.setRotation(stain.angle)
             pen = QtGui.QPen(QtCore.Qt.green)
-            pen.setWidth(3)
+            pen.setWidth(1)
             ellipse.setPen(pen)
+            ellipse.setVisible(False)
             return ellipse
 
     def add_annotations(self, annotations, pattern):
+        self.pattern = pattern
+        self.annotations = annotations
+        print(self.pattern.stains)
         self._scene.removeItem(self.annotation_items)
         self._scene.update()
 
@@ -169,8 +211,8 @@ class PhotoViewer(QtWidgets.QGraphicsView):
                 items.append(self.add_ellipse(stain))
             # if annotations['id']:
             #     text += str(stain.id)
-            if annotations['directionality']:
-                text += " " + str(stain.direction())
+            # if annotations['directionality']:
+            #     text += " " + str(stain.direction())
             if annotations['center']:
                 items.append(self.add_center(stain))
             if annotations['gamma']:
@@ -182,3 +224,4 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
         self.annotation_items = self._scene.createItemGroup(
                 [item for item in items if item is not None])
+        print(self.annotation_items.childItems())

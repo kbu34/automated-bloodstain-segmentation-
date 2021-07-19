@@ -23,9 +23,13 @@ class Stain:
         self.area_mm = self.area * (1 / scale ** 2)
         self.ellipse, self.c = self.fit_ellipse()
         self.major_axis = None
+        self.ratio = None
 
         if self.ellipse is not None:
             (self.x_ellipse, self.y_ellipse), (self.width, self.height), self.angle = self.ellipse
+            self.ratio = self.width / self.height
+            if self.ratio < 0.86:
+                self.ellipse = None
             self.major_axis = self.calculate_major_axis()
         else:
             self.x_ellipse, self.y_ellipse, self.width, self.height, self.angle = [None] * 5
@@ -82,14 +86,11 @@ class Stain:
                 else:
                     contour = self.contour[end_tail: start_tail + 1]
                 if len(contour) > 5:
-                    (x, y), (MA, ma), angle = cv2.fitEllipse(np.array(contour))
+                    ellipse = cv2.fitEllipse(np.array(contour))
+                    (x, y), (MA, ma), angle = ellipse
                     A = np.pi / 4 * MA * ma
                     if A > 0 and self.area / A > 0.3: 
-                        e = cv2.fitEllipse(np.array(contour))
-                        _, (width, height), _ = e
-                        if width > height:
-                            print("ellipse: ", width, height)
-                        return e, contour
+                        return ellipse, contour
                     else:
                         p = cv2.minAreaRect(np.array(contour))
                         a1, (width, height), a2 = p
@@ -103,14 +104,11 @@ class Stain:
                         #     return e, []
                         return p, contour
             else:
-                (x, y), (MA, ma), angle = cv2.fitEllipse(np.array(self.contour))
+                ellipse = cv2.fitEllipse(np.array(contour))
+                (x, y), (MA, ma), angle = ellipse
                 A = np.pi / 4 * MA * ma
                 if A > 0 and self.area / A > 0.3: 
-                    e = cv2.fitEllipse(np.array(self.contour))
-                    _, (width, height), _ = e
-                    if width > height:
-                        print("ellipse: ", width, height)
-                    return e, []
+                    return ellipse, []
                 else:
                     p = cv2.minAreaRect(np.array(self.contour))
                     _, (width, height), _ = p
@@ -203,15 +201,17 @@ class Stain:
         
         # return direction
 
-        convex_hull = cv2.convexHull(self.contour)
-        deltas = map(lambda pt: (pt - self.position)[0], convex_hull)
-        extremity = max(deltas, key=lambda delta: math.sqrt(delta[0] ** 2 + delta[1] ** 2))
-        self.extremity = self.position + extremity
+        if self.ellipse:
+            convex_hull = cv2.convexHull(self.contour)
+            deltas = map(lambda pt: (pt - self.position)[0], convex_hull)
+            extremity = max(deltas, key=lambda delta: math.sqrt(delta[0] ** 2 + delta[1] ** 2))
+            self.extremity = self.position + extremity
 
-        direction = [None, None]
-        direction[0] = 'left' if extremity[0] < 0 else 'right'
-        direction[1] = 'up' if extremity[1] < 0 else 'down'
-        return direction
+            direction = [None, None]
+            direction[0] = 'left' if extremity[0] < 0 else 'right'
+            direction[1] = 'up' if extremity[1] < 0 else 'down'
+            return direction
+        return [None, None]
 
     def calculate_major_axis(self):
         x = self.position[0] 
@@ -245,7 +245,12 @@ class Stain:
                 return cv2.contourArea(half_contour) / hull_half
         return -1
 
-    def intensity(self, image):
+    def intensity(self):
+        """
+		Returns the average intensity (amount of colour) of the pixels contained within the stain.
+
+		:return: Intensity as a scalar in the range [0, 1]
+		"""
         grey = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         mask = np.zeros(grey.shape, np.uint8)
         cv2.drawContours(mask, [self.contour], 0, 255, -1)
@@ -253,17 +258,31 @@ class Stain:
         return intensity[0] / 255
 
     def solidity(self):
-        '''regularity of element margin'''
-        hull = cv2.convexHull(self.contour)
-        hull_area = cv2.contourArea(hull)
-        if hull_area > 0:
-            return self.area / hull_area
-        else:
-            return None
+        """
+		Returns the solidity of the stain, which represents the regularity of its margin.
+		Calculated from the area of the stain's contour divided by the area of its convex hull.
+
+		:return: Solidity as a scalar in the range [0, 1]
+		"""
+        if self.ellipse:
+            hull = cv2.convexHull(self.contour)
+            hull_area = cv2.contourArea(hull)
+            if hull_area > 0:
+                return self.area / hull_area
+            else:
+                return None
+        return None
     
     def annotate(self, image, annotations={
         'ellipse':True, 'id':False, 'directionality':False, 
         'center':False, 'gamma':False, 'direction_line': False}):
+        """
+		Annotates the given image with the fitted ellipse for the stain and other properties depending on parameters.
+
+		:param image: The image to annotate.
+		:param annotations: A dictionary describing which annotations to include.
+		"""
+
         font = cv2.FONT_HERSHEY_SIMPLEX
         text = ""
 
@@ -294,8 +313,8 @@ class Stain:
         return str_points
 
     def get_summary_data(self):
-        summary_data = [self.id, self.position[0], self.position[1], int(self.area), self.area_mm, self.width, self.height, \
-                self.orientaton()[0], self.orientaton()[1], str(self.direction()), self.solidity(), self.circularity(), self.intensity(self.image)]
+        summary_data = [self.id, self.position[0], self.position[1], int(self.area), self.area_mm, self.width, self.height, self.ratio, \
+                self.orientaton()[0], self.orientaton()[1], str(self.direction()), self.solidity(), self.circularity(), self.intensity()]
         formatted = []
         for data in summary_data:
             if (data == float('inf')):
