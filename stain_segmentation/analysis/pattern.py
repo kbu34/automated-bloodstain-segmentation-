@@ -62,7 +62,11 @@ class Pattern:
 
             self.plot_intersection_scatter(ax1, x, y)
             nbins = 25
+            while len(x) <= 2:
+                x.append(0)
+                y.append(0)
             k = kde.gaussian_kde([x,y])
+            print("k", k.covariance)
             xi, yi = np.mgrid[min(x):max(x):nbins*1j, min(y):max(y):nbins*1j]
             point_density = k([xi.reshape(-1), yi.reshape(-1)])
 
