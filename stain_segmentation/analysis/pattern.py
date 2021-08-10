@@ -170,6 +170,10 @@ class Pattern:
         points = np.array(points)
         hull = ConvexHull(points)
 
+        '''centroid'''
+        centroidx = np.mean(hull.points[hull.vertices,0])
+        centroidy = np.mean(hull.points[hull.vertices,1])
+
         fig = plt.figure(figsize=figsize)
         fig.canvas.set_window_title('Distribution ' + self.name)
         self.plots['distribution'] = fig
@@ -191,7 +195,8 @@ class Pattern:
         return ratio_stain_number, ratio_stain_area
 
     def calculate_summary_data(self, pattern_metrics):
-        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6       
+        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6 
+        centroid = []      
 
         if pattern_metrics['linearity']:
             print("computing linearity...")
@@ -220,12 +225,48 @@ class Pattern:
                 str_box = "lower left (x,y) : ({:.1f},{:.1f}) Width : {:.1f} Height : {:.1f}".format(
                     box.get_x(), box.get_y(), box.get_width(), box.get_height())
                 str_convergence = "({:.1f}, {:.1f})".format(*convergence_point)
+        
+        # if pattern_metrics['centroid']:
+        #     print("computing centroid...")
+        #     a = time.time()
+        #     stain_number = len(self.stains)
+        #     stains_area = 0
+        #     points = []
+        #     for stain in self.stains:
+        #         points += (stain.contour[:,0]).tolist()
+        #         stains_area += stain.area
+        #     points = np.array(points)
+        #     hull = ConvexHull(points)
+
+        #     '''centroid'''
+        #     centroidx = np.mean(hull.points[hull.vertices,0])
+        #     centroidy = np.mean(hull.points[hull.vertices,1])
+
+        #     centroid = [centroidx, centroidy]
+
+        print("computing centroid...")
+        a = time.time()
+        stain_number = len(self.stains)
+        stains_area = 0
+        points = []
+        for stain in self.stains:
+            points += (stain.contour[:,0]).tolist()
+            stains_area += stain.area
+        points = np.array(points)
+        hull = ConvexHull(points)
+
+        '''centroid'''
+        centroidx = np.mean(hull.points[hull.vertices,0])
+        centroidy = np.mean(hull.points[hull.vertices,1])
+
+        centroid = [centroidx, centroidy]
 
  
-        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box]
+        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box, centroid]
         return self.summary_data
 
     def get_summary_data(self, pattern_metrics):
+        print(type(pattern_metrics))
         return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(pattern_metrics)
         
 

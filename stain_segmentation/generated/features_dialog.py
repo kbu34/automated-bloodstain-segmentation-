@@ -114,6 +114,16 @@ class Ui_SegmenationMetrics(object):
         self.distribution_check.setFont(font)
         self.distribution_check.setChecked(True)
         self.distribution_check.setObjectName("distribution_check")
+        
+        self.centroid_check = QtWidgets.QCheckBox(SegmenationMetrics)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.centroid_check.setFont(font)
+        self.centroid_check.setChecked(True)
+        self.centroid_check.setObjectName("centroid_check")
+        self.verticalLayout.addWidget(self.centroid_check)
+        self.centroid_check = QtWidgets.QCheckBox(SegmenationMetrics)
+
         self.verticalLayout.addWidget(self.distribution_check)
         self.gridLayout.addLayout(self.verticalLayout, 1, 2, 1, 1)
         self.line = QtWidgets.QFrame(SegmenationMetrics)

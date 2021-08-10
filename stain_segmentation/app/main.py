@@ -121,7 +121,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
                         'gamma': self.dialog.gamma.isChecked()}
             self.pattern_metrics = {'linearity': self.dialog.linearity_check.isChecked(),
                                     'convergence': self.dialog.convergence_check.isChecked(),
-                                    'distribution': self.dialog.distribution_check.isChecked()}
+                                    'distribution': self.dialog.distribution_check.isChecked(),
+                                    'centroid': self.dialog.centroid_check.isChecked()}
             a = time.time()
 
             self.pattern = Seg.stain_segmentation(image, self.file_name, scale=self.scale)
@@ -171,7 +172,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
 
     def populate_pattern_table(self):
         metrics = ["Linearity - Polyline fit", "R^2", "Distribution - ratio stain number to convex hull area", 
-                                "ratio stain area to convex hull area", "Convergence - point of highest density", "box of %60 of intersections"]
+                                "ratio stain area to convex hull area", "Convergence - point of highest density", "box of %60 of intersections", "centroid"]
         self.pattern_table_widget.setColumnCount(2)
         self.pattern_table_widget.setRowCount(len(metrics))
         self.pattern_table_widget.setHorizontalHeaderLabels(["Metric", "Value"])
@@ -212,7 +213,8 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         pattern_metrics = dict(
             linearity = self.batch_dialog.linearity_check.isChecked(),
             convergence = self.batch_dialog.convergence_check.isChecked(),
-            distribution = self.batch_dialog.distribution_check.isChecked()
+            distribution = self.batch_dialog.distribution_check.isChecked(),
+            centroid = self.batch_dialog.centroid_check.isChecked()
         )
 
         if folder_name:
