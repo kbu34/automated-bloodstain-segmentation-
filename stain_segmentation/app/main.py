@@ -214,7 +214,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
             linearity = self.batch_dialog.linearity_check.isChecked(),
             convergence = self.batch_dialog.convergence_check.isChecked(),
             distribution = self.batch_dialog.distribution_check.isChecked(),
-            centroid = self.batch_dialog.centroid_check.isChecked()
+            #centroid = self.batch_dialog.centroid_check.isChecked()
         )
 
         if folder_name:

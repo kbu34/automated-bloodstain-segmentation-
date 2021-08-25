@@ -246,6 +246,11 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self._scene.update()
 
         items = []
+        center = QtWidgets.QGraphicsEllipseItem(pattern.centroid[1], pattern.centroid[0], 100, 100)
+        pen = QtGui.QPen(QtCore.Qt.white)
+        pen.setWidth(100)
+        center.setPen(pen)
+        items.append(center)
 
         for stain in pattern.stains:
             text = ""

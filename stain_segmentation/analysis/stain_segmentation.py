@@ -31,6 +31,26 @@ def process_image(filename, output_path, scale=7.0, show=False, pattern_metrics=
     if show:
         result_preview(stain_overlay)
 
+    print(image.shape)
+    xlist = []
+    ylist = []
+    
+    rows, cols, _ = image.shape
+    for i in range(rows):
+      for j in range(cols):
+         k = image[i,j]
+         if list(k) == [255, 255, 255]:
+             print(i, j, k)
+             xlist.append(i)
+             ylist.append(j)
+    print(len(xlist))
+    print(len(ylist))
+
+    centroidx = np.mean(xlist)
+    print(centroidx)
+    centroidy = np.mean(ylist)
+    print(centroidy)
+
     export_pattern(pattern, stain_overlay, output_path)
     plt.close('all')
    
@@ -38,19 +58,32 @@ def process_image(filename, output_path, scale=7.0, show=False, pattern_metrics=
 def draw_stains(pattern):
     stain_overlay = pattern.image.copy()
     for stain in pattern.stains:
-        stain.annotate(stain_overlay)    
+        stain.annotate(stain_overlay)
     return stain_overlay
+
+
+def crop_centroid(pattern):
+    image = pattern.image
+    width, height, _ = image.shape
+    xdist = min(abs(width - pattern.centroid[0]), abs(pattern.centroid[0]))
+    ydist = min(abs(height - pattern.centroid[1]), abs(pattern.centroid[1]))
+    dist = min(xdist, ydist)
+    print(dist)
+
+    return image[pattern.centroid[0]-dist:pattern.centroid[0]+dist, pattern.centroid[1]-dist:pattern.centroid[1]+dist]
 
 
 def export_pattern(pattern, stain_overlay, output_path):
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
+
+    cv2.imwrite(path.join(output_path, 'cropped.jpg'), crop_centroid(pattern))
 
     cv2.drawContours(pattern.image, pattern.contours, -1, (255,0,255), 1)
 
     cv2.imwrite(path.join(output_path,'binary.jpg'), pattern.thresh) # uncomment to export a binary image
     cv2.imwrite(path.join(output_path, 'stain_overlay.jpg'), stain_overlay)
 
-    export_stain_data(output_path, pattern)   
+    export_stain_data(output_path, pattern)
     export_obj(output_path, pattern)
 
     if pattern.summary_data is not None:
@@ -63,7 +96,7 @@ def find_images(folder, file_types=image_types):
     images = []
     files = os.listdir(folder)
     for file in files:
-        _, ext = path.splitext(file) 
+        _, ext = path.splitext(file)
         if ext.lower() in file_types:
             images.append(path.join(folder, file))
     return images
@@ -154,7 +187,7 @@ def export_obj(save_path, pattern):
         for stain in pattern.stains:
             f.write(stain.obj_format(width, height) )
 
-def result_preview(img_original) :
+def result_preview(img_original):
     print("Press 'q' to close preview")
     while True:
         small = cv2.resize(img_original, (0,0), fx=0.25, fy=0.25)
@@ -174,7 +207,7 @@ def remove_circle_markers(gray, img):
             cv2.circle(img, (i[0],i[1]),i[2] + 10, (0,0,0), -2)
 
 
-def binarize_image(gray) :
+def binarize_image(gray):
     thresh = cv2.adaptiveThreshold(gray, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 99, 10)
     kernel = np.ones((3,3),np.uint8)
 

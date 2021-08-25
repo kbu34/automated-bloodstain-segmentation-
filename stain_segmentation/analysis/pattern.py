@@ -13,6 +13,7 @@ class Pattern:
     def __init__(self, image, thresh, filename, scale=7.0):
         
         self.image = image
+        self.original = image
         self.thresh = thresh
         self.name = filename
         self.contours = []
@@ -90,7 +91,7 @@ class Pattern:
 
     def plot_density_heatmap(self, ax2, x, y, xi, yi, point_density, box, fig):
         im = ax2.pcolormesh(xi, yi, point_density.reshape(xi.shape), cmap='jet')
-        ax2.add_patch(box)        
+        ax2.add_patch(box)
         ax2.set_ylim(max(y), 0)
         ax2.set_xlim(0, max(x))
         ax2.set_title("Heat Map of Convergence")
@@ -116,7 +117,7 @@ class Pattern:
 
     def line_intersection(self, line1, line2):
         xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
-        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1]) 
+        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
 
         def det(a, b):
             return a[0] * b[1] - a[1] * b[0]
@@ -174,6 +175,24 @@ class Pattern:
         centroidx = np.mean(hull.points[hull.vertices,0])
         centroidy = np.mean(hull.points[hull.vertices,1])
 
+        self.centroid = [centroidx, centroidy]
+
+        xlist = []
+        ylist = []
+
+        rows, cols, _ = self.image.shape
+        for i in range(rows):
+            for j in range(cols):
+                if self.thresh[i][j] == 255:
+                    xlist.append(i)
+                    ylist.append(j)
+        centroidx = np.mean(xlist)
+        print(centroidx)
+        centroidy = np.mean(ylist)
+        print(centroidy)
+        self.centroid = [int(centroidx), int(centroidy)]
+        print(self.centroid)
+
         fig = plt.figure(figsize=figsize)
         fig.canvas.set_window_title('Distribution ' + self.name)
         self.plots['distribution'] = fig
@@ -195,8 +214,7 @@ class Pattern:
         return ratio_stain_number, ratio_stain_area
 
     def calculate_summary_data(self, pattern_metrics):
-        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6 
-        centroid = []      
+        poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box = [""]*6   
 
         if pattern_metrics['linearity']:
             print("computing linearity...")
@@ -245,24 +263,24 @@ class Pattern:
         #     centroid = [centroidx, centroidy]
 
         print("computing centroid...")
-        a = time.time()
-        stain_number = len(self.stains)
-        stains_area = 0
-        points = []
-        for stain in self.stains:
-            points += (stain.contour[:,0]).tolist()
-            stains_area += stain.area
-        points = np.array(points)
-        hull = ConvexHull(points)
+        # a = time.time()
+        # stain_number = len(self.stains)
+        # stains_area = 0
+        # points = []
+        # for stain in self.stains:
+        #     points += (stain.contour[:,0]).tolist()
+        #     stains_area += stain.area
+        # points = np.array(points)
+        # hull = ConvexHull(points)
 
-        '''centroid'''
-        centroidx = np.mean(hull.points[hull.vertices,0])
-        centroidy = np.mean(hull.points[hull.vertices,1])
+        # '''centroid'''
+        # centroidx = np.mean(hull.points[hull.vertices,0])
+        # centroidy = np.mean(hull.points[hull.vertices,1])
 
-        centroid = [centroidx, centroidy]
+        #centroid = [centroidx, centroidy]
 
  
-        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box, centroid]
+        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box, self.centroid]
         return self.summary_data
 
     def get_summary_data(self, pattern_metrics):
