@@ -76,7 +76,8 @@ def crop_centroid(pattern):
 def export_pattern(pattern, stain_overlay, output_path):
     pathlib.Path(output_path).mkdir(parents=True, exist_ok=True)
 
-    cv2.imwrite(path.join(output_path, 'cropped.jpg'), crop_centroid(pattern))
+    if len(pattern.centroid) == 2:
+        cv2.imwrite(path.join(output_path, 'cropped.jpg'), crop_centroid(pattern))
 
     cv2.drawContours(pattern.image, pattern.contours, -1, (255,0,255), 1)
 

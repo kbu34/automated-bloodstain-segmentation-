@@ -119,10 +119,9 @@ class Ui_SegmenationMetrics(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.centroid_check.setFont(font)
-        self.centroid_check.setChecked(True)
+        # self.centroid_check.setChecked(True)
         self.centroid_check.setObjectName("centroid_check")
         self.verticalLayout.addWidget(self.centroid_check)
-        self.centroid_check = QtWidgets.QCheckBox(SegmenationMetrics)
 
         self.verticalLayout.addWidget(self.distribution_check)
         self.gridLayout.addLayout(self.verticalLayout, 1, 2, 1, 1)
@@ -178,6 +177,7 @@ class Ui_SegmenationMetrics(object):
         self.linearity_check.setText(_translate("SegmenationMetrics", "Linearity"))
         self.convergence_check.setText(_translate("SegmenationMetrics", "Convergence"))
         self.distribution_check.setText(_translate("SegmenationMetrics", "Distribution of Elements"))
+        self.centroid_check.setText(_translate("SegmenationMetrics", "Centroid"))
         self.label_3.setText(_translate("SegmenationMetrics", "Scale"))
         self.label_4.setText(_translate("SegmenationMetrics", "Scale"))
 
