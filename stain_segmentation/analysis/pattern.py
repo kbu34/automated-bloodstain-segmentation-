@@ -55,6 +55,8 @@ class Pattern:
         if len(intersects):
             x = [i[0] for i in intersects]
             y = [j[1] for j in intersects]
+            if len(x) < 2:
+                return None, None
             fig = plt.figure(figsize=figsize)
 
             fig.canvas.set_window_title('Convergence ' + self.name)
@@ -64,11 +66,7 @@ class Pattern:
 
             self.plot_intersection_scatter(ax1, x, y)
             nbins = 25
-            while len(x) <= 2:
-                x.append(0)
-                y.append(0)
             k = kde.gaussian_kde([x,y])
-            print("k", k.covariance)
             xi, yi = np.mgrid[min(x):max(x):nbins*1j, min(y):max(y):nbins*1j]
             point_density = k([xi.reshape(-1), yi.reshape(-1)])
 
@@ -173,11 +171,8 @@ class Pattern:
                     xlist.append(i)
                     ylist.append(j)
         centroidx = np.mean(xlist)
-        print(centroidx)
         centroidy = np.mean(ylist)
-        print(centroidy)
         self.centroid = [int(centroidx), int(centroidy)]
-        print(self.centroid)
 
     def distribution(self,  figsize=(18, 12)):
         stain_number = len(self.stains)
@@ -248,7 +243,6 @@ class Pattern:
         return self.summary_data
 
     def get_summary_data(self, pattern_metrics):
-        print(type(pattern_metrics))
         return self.summary_data if len(self.summary_data) > 0 else self.calculate_summary_data(pattern_metrics)
         
 

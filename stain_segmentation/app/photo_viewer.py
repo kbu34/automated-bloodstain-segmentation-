@@ -131,9 +131,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         if self.annotations['direction_line']:
             self.set_direction_line(id)
             items.append(self.direction_line)
-        
-        self.annotation_items = self._scene.createItemGroup(
-                [item for item in items if item is not None])
 
     def set_text(self, x, y, text):
         self.text.setPlainText(text)
@@ -145,6 +142,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         self.text.setY(y + 100)
 
     def set_outline(self, id):
+        self._scene.removeItem(self.outline)
         poly = QtGui.QPolygonF()
         stain = self.pattern.stains[int(id)]
         for pt in stain.contour.tolist():
@@ -153,18 +151,19 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         pen = QtGui.QPen(QtCore.Qt.magenta)
         pen.setWidth(1)
         self.outline.setPen(pen)
-        # self._scene.addItem(self.outline)
+        self._scene.addItem(self.outline)
 
     def set_ellipse(self, id):
+        self._scene.removeItem(self.ellipse)
         stain = self.pattern.stains[int(id)]
-        if stain.ellipse != None:
+        if stain.x_ellipse != None:
             self.ellipse = QtWidgets.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
             self.ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
             self.ellipse.setRotation(stain.angle)
             pen = QtGui.QPen(QtCore.Qt.green)
             pen.setWidth(1)
             self.ellipse.setPen(pen)
-            # self._scene.addItem(self.ellipse)
+            self._scene.addItem(self.ellipse)
 
     def set_center(self, id):
         self._scene.removeItem(self.center)
@@ -173,7 +172,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
         pen = QtGui.QPen(QtCore.Qt.white)
         pen.setWidth(3)
         self.center.setPen(pen)
-        # self._scene.addItem(self.center)
+        self._scene.addItem(self.center)
 
     def set_direction_line(self, id):
         self._scene.removeItem(self.direction_line)
@@ -186,7 +185,7 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             pen = QtGui.QPen(QtCore.Qt.darkBlue)
             pen.setWidth(2)
             self.direction_line.setPen(pen)
-            # self._scene.addItem(self.direction_line)
+            self._scene.addItem(self.direction_line)
 
     def add_text(self, stain, text):
         text = QtWidgets.QGraphicsTextItem(str(text))
@@ -241,15 +240,18 @@ class PhotoViewer(QtWidgets.QGraphicsView):
     def add_annotations(self, annotations, pattern):
         self.pattern = pattern
         self.annotations = annotations
-        print(self.pattern.stains)
         self._scene.removeItem(self.annotation_items)
+        self._scene.removeItem(self.center)
+        self._scene.removeItem(self.outline)
+        self._scene.removeItem(self.ellipse)
+        self._scene.removeItem(self.direction_line)
         self._scene.update()
 
         items = []
         if len(pattern.centroid) == 2:
             center = QtWidgets.QGraphicsEllipseItem(pattern.centroid[1], pattern.centroid[0], 100, 100)
             pen = QtGui.QPen(QtCore.Qt.white)
-            pen.setWidth(100)
+            pen.setWidth(50)
             center.setPen(pen)
             items.append(center)
 
@@ -259,16 +261,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
                 items.append(self.add_outline(stain))
             if annotations['ellipse']:
                 items.append(self.add_ellipse(stain))
-            # if annotations['id']:
-            #     text += str(stain.id)
-            # if annotations['directionality']:
-            #     text += " " + str(stain.direction())
-            # if annotations['center']:
-            #     items.append(self.add_center(stain))
-            # if annotations['gamma']:
-            #     text += " " + str(stain.orientaton()[1])
-            # if annotations['direction_line']:
-            #     items.append(self.add_direction_line(stain))
 
             items.append(self.add_text(stain, text))
 

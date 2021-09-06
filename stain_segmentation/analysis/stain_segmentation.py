@@ -31,26 +31,6 @@ def process_image(filename, output_path, scale=7.0, show=False, pattern_metrics=
     if show:
         result_preview(stain_overlay)
 
-    print(image.shape)
-    xlist = []
-    ylist = []
-    
-    rows, cols, _ = image.shape
-    for i in range(rows):
-      for j in range(cols):
-         k = image[i,j]
-         if list(k) == [255, 255, 255]:
-             print(i, j, k)
-             xlist.append(i)
-             ylist.append(j)
-    print(len(xlist))
-    print(len(ylist))
-
-    centroidx = np.mean(xlist)
-    print(centroidx)
-    centroidy = np.mean(ylist)
-    print(centroidy)
-
     export_pattern(pattern, stain_overlay, output_path)
     plt.close('all')
    
@@ -68,7 +48,6 @@ def crop_centroid(pattern):
     xdist = min(abs(width - pattern.centroid[0]), abs(pattern.centroid[0]))
     ydist = min(abs(height - pattern.centroid[1]), abs(pattern.centroid[1]))
     dist = min(xdist, ydist)
-    print(dist)
 
     return image[pattern.centroid[0]-dist:pattern.centroid[0]+dist, pattern.centroid[1]-dist:pattern.centroid[1]+dist]
 

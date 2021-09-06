@@ -96,12 +96,6 @@ class Stain:
                         a1, (width, height), a2 = p
                         if width > height:
                             p = a1, (height, width), a2
-                        # if width > height:
-                        #     print("min: ", width, height)
-                        #     e = cv2.fitEllipse(np.array(contour))
-                        #     _, (width, height), _ = e
-                        #     print("ep: ", width, height)
-                        #     return e, []
                         return p, contour
             else:
                 ellipse = cv2.fitEllipse(np.array(contour))
@@ -115,12 +109,6 @@ class Stain:
                     a1, (width, height), a2 = p
                     if width > height:
                             p = a1, (height, width), a2
-                    # if width > height:
-                    #     print("minp: ", width, height)
-                    #     e = cv2.fitEllipse(np.array(self.contour))
-                    #     _, (width, height), _ = e
-                    #     print("ellipse: ", width, height)
-                    #     return e, []
                     return p, []
      
         return None, []
