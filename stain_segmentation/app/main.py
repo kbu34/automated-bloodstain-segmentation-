@@ -135,7 +135,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
       
             
     def populate_tables(self):
-        self.clear_tables()
+        self.clear_tables() 
         self.populate_stain_table()
         self.populate_pattern_table()
         self.progressBar.setValue(100)
