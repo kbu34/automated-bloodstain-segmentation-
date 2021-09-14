@@ -240,7 +240,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
     def add_annotations(self, annotations, pattern):
         self.pattern = pattern
         self.annotations = annotations
-        self._scene.removeItem(self.annotation_items)
         self._scene.removeItem(self.center)
         self._scene.removeItem(self.outline)
         self._scene.removeItem(self.ellipse)
@@ -249,9 +248,9 @@ class PhotoViewer(QtWidgets.QGraphicsView):
 
         items = []
         if len(pattern.centroid) == 2:
-            center = QtWidgets.QGraphicsEllipseItem(pattern.centroid[1], pattern.centroid[0], 100, 100)
+            center = QtWidgets.QGraphicsEllipseItem(pattern.centroid[1], pattern.centroid[0], 10, 10)
             pen = QtGui.QPen(QtCore.Qt.white)
-            pen.setWidth(50)
+            pen.setWidth(20)
             center.setPen(pen)
             items.append(center)
 

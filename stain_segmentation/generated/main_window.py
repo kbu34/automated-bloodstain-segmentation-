@@ -11,7 +11,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1075, 837)
+        MainWindow.resize(1350, 850)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setMaximumSize(QtCore.QSize(16777215, 16777215))
         self.centralwidget.setAutoFillBackground(True)

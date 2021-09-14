@@ -237,9 +237,11 @@ class Pattern:
         
         if pattern_metrics['centroid']:
             self.calc_centroid()
+        else:
+            self.centroid = "None"
 
  
-        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box, self.centroid]
+        self.summary_data = [poly, r_squared,  ratio_stain_number, ratio_stain_area, str_convergence, str_box, [self.centroid[1], self.centroid[0]]]
         return self.summary_data
 
     def get_summary_data(self, pattern_metrics):

@@ -145,7 +145,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         self.tableWidget.setColumnCount(12)
         self.tableWidget.setRowCount(len(self.pattern.stains))
         self.tableWidget.itemClicked.connect(self.show_stain)
-        headers = ["position x", "position y", "area px", "area_mm", 
+        headers = ["x position", "y position", "area(px)", "area(mm)", 
                 "width ellipse", "height ellipse", "ratio", "angle", "gamma", 
                 "direction", "solidity", "circularity", "intensity"]
 
@@ -162,6 +162,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
                 if stain_data[i] != None:
                     self.tableWidget.setItem(j,i-1, QtWidgets.QTableWidgetItem(str(stain_data[i])))
             j += 1
+        self.tableWidget.resizeColumnsToContents()
         self.tableWidget.show()
 
     def show_stain(self, item):
@@ -180,6 +181,7 @@ class BPA_App(QtWidgets.QMainWindow, main_window.Ui_MainWindow):
         for i in range(len(pattern_data)):
             self.pattern_table_widget.setItem(i, 0, QtWidgets.QTableWidgetItem(str(metrics[i])))
             self.pattern_table_widget.setItem(i, 1, QtWidgets.QTableWidgetItem(str(pattern_data[i])))
+        self.pattern_table_widget.resizeColumnsToContents()
 
     def clear_tables(self):
         self.tableWidget.setRowCount(0)

@@ -119,7 +119,6 @@ class Ui_SegmenationMetrics(object):
         font = QtGui.QFont()
         font.setPointSize(10)
         self.centroid_check.setFont(font)
-        # self.centroid_check.setChecked(True)
         self.centroid_check.setObjectName("centroid_check")
         self.verticalLayout.addWidget(self.centroid_check)
 
