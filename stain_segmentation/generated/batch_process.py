@@ -62,6 +62,14 @@ class Ui_BatchProcessing(object):
         self.convergence_check.setChecked(True)
         self.convergence_check.setObjectName("convergence_check")
         self.verticalLayout.addWidget(self.convergence_check)
+
+        self.centroid_check = QtWidgets.QCheckBox(self.verticalLayoutWidget)
+        font = QtGui.QFont()
+        font.setPointSize(10)
+        self.centroid_check.setFont(font)
+        self.centroid_check.setObjectName("centroid_check")
+        self.verticalLayout.addWidget(self.centroid_check)
+
         self.distribution_check = QtWidgets.QCheckBox(self.verticalLayoutWidget)
         font = QtGui.QFont()
         font.setPointSize(10)
@@ -119,6 +127,7 @@ class Ui_BatchProcessing(object):
         self.linearity_check.setText(_translate("BatchProcessing", "Linearity"))
         self.convergence_check.setText(_translate("BatchProcessing", "Convergence"))
         self.distribution_check.setText(_translate("BatchProcessing", "Distribution of Elements"))
+        self.centroid_check.setText(_translate("SegmenationMetrics", "Centroid"))
         self.label_5.setText(_translate("BatchProcessing", "Pattern Metrics"))
         self.label_6.setText(_translate("BatchProcessing", "Scale"))
 

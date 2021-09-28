@@ -137,6 +137,8 @@ class Stain:
     def orientaton(self):
         """
         Returns the gamma angle value of the stain. Return infinite if elipse is not found.
+
+        :return: Orientation in the form of [angle, gamma]
         """
         if self.ellipse:
             if self.direction()[0] == "left":
@@ -151,44 +153,9 @@ class Stain:
         """
         Returns the direction of the stain. First value indicates the x axis direction and 
         the second value indicates y axis direction.
+
+        :return: Direction in the form of [x_direction, y_direction]
         """
-        # if self.ellipse:
-        #     x = self.x_ellipse
-        #     angle = self.angle
-        #     left_half = []
-        #     right_half = []
-            
-        #     for pt in self.contour:
-        #         pt = pt[0]
-        #         side = (pt[0] - x)
-        #         if side > 1:
-        #             right_half.append(pt)
-        #         else:
-        #             left_half.append(pt)
-        #     left_half = np.array(left_half)
-            
-        #     right_half = np.array(right_half)
-
-        # else:
-        #     left_half = self.contour[ : len(self.contour) // 2]
-        #     right_half = self.contour[len(self.contour) // 2 : ]
-        #     angle = float('inf')
-        
-        # if np.abs(self.area_half(left_half) - self.area_half(right_half)) <= 0.005:  
-        #     direction = "?"
-        # elif self.area_half(left_half) < self.area_half(right_half):
-        #     if angle < 90:
-        #         direction = ("left", "down")
-        #     else:
-        #         direction = ("left", "up")
-        # else:
-        #     if angle < 90:
-        #         direction = ("right", "up")
-        #     else:
-        #         direction = ("right", "down")
-        
-        # return direction
-
         if self.ellipse:
             convex_hull = cv2.convexHull(self.contour)
             deltas = map(lambda pt: (pt - self.position)[0], convex_hull)
@@ -202,6 +169,11 @@ class Stain:
         return [None, None]
 
     def calculate_major_axis(self):
+        """
+        Calculates and returns the major axis of the stain.
+
+        :return: Major axis in the form [x0, y0, x1, y1]
+        """
         x = self.position[0] 
         y = self.position[1]
         direction = self.direction()

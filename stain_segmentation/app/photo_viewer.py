@@ -95,7 +95,11 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             self.photoClicked.emit(QtCore.QPoint(event.pos()))
         super(PhotoViewer, self).mousePressEvent(event)
 
-    def add_rectangle(self, x, y, width, height, id):
+    def add_items(self, x, y, width, height, id):
+        """
+        Adds a rectangle around the stain and other annotation
+        items that have been checked during the prompt.
+        """
         self.highlight.setRect(x, y, width, height)
         penRectangle = QtGui.QPen(QtCore.Qt.blue)
         penRectangle.setWidth(10)
@@ -187,56 +191,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             self.direction_line.setPen(pen)
             self._scene.addItem(self.direction_line)
 
-    def add_text(self, stain, text):
-        text = QtWidgets.QGraphicsTextItem(str(text))
-        font = QtGui.QFont()
-        font.setPointSize(30)
-        text.setFont(font)
-        text.setDefaultTextColor(QtCore.Qt.yellow)
-        text.setX(stain.position[0])
-        text.setY(stain.position[1])
-        return text
-
-    def add_outline(self, stain):
-        poly = QtGui.QPolygonF()
-        for pt in stain.contour.tolist():
-            poly.append(QtCore.QPointF(*pt[0]))
-        outline = QtWidgets.QGraphicsPolygonItem(poly)
-        pen = QtGui.QPen(QtCore.Qt.magenta)
-        pen.setWidth(1)
-        outline.setPen(pen)
-        outline.setVisible(False)
-        return outline
-
-    def add_direction_line(self, stain):
-        if stain.major_axis:
-            poly = QtGui.QPolygonF()
-            poly.append(QtCore.QPointF(*stain.major_axis[0]))
-            poly.append(QtCore.QPointF(*stain.major_axis[1]))
-            line = QtWidgets.QGraphicsPolygonItem(poly)
-            pen = QtGui.QPen(QtCore.Qt.darkBlue)
-            pen.setWidth(2)
-            line.setPen(pen)
-            return line
-
-    def add_center(self, stain):
-        center = QtWidgets.QGraphicsEllipseItem(stain.position[0], stain.position[1], 1, 1)
-        pen = QtGui.QPen(QtCore.Qt.white)
-        pen.setWidth(3)
-        center.setPen(pen)
-        return center
-
-    def add_ellipse(self, stain):
-        if stain.ellipse != None:
-            ellipse = QtWidgets.QGraphicsEllipseItem(stain.x_ellipse - (stain.width / 2), stain.y_ellipse - (stain.height / 2), stain.width, stain.height)
-            ellipse.setTransformOriginPoint(QtCore.QPointF(stain.x_ellipse, stain.y_ellipse ))
-            ellipse.setRotation(stain.angle)
-            pen = QtGui.QPen(QtCore.Qt.green)
-            pen.setWidth(1)
-            ellipse.setPen(pen)
-            ellipse.setVisible(False)
-            return ellipse
-
     def add_annotations(self, annotations, pattern):
         self.pattern = pattern
         self.annotations = annotations
@@ -253,15 +207,6 @@ class PhotoViewer(QtWidgets.QGraphicsView):
             pen.setWidth(20)
             center.setPen(pen)
             items.append(center)
-
-        for stain in pattern.stains:
-            text = ""
-            if annotations['outline']:
-                items.append(self.add_outline(stain))
-            if annotations['ellipse']:
-                items.append(self.add_ellipse(stain))
-
-            items.append(self.add_text(stain, text))
 
         self.annotation_items = self._scene.createItemGroup(
                 [item for item in items if item is not None])

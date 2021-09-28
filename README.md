@@ -10,14 +10,31 @@ Includes a table view and annotated image view.
 # Windows/Linux/MacOS install
 
 Requirements:
- - miniconda3 [https://docs.conda.io/en/latest/miniconda.html] (64 bit, python 3.9). 
+ - miniconda3 [https://docs.conda.io/en/latest/miniconda.html] (64 bit, Python 3.9). 
  - git (if in Windows)[https://git-scm.com/downloads]
 
+#### Windows:
 Open up an Anaconda shell (link in start menu). Navigate to the desired install location.
 ```
 git clone https://eng-git.canterbury.ac.nz/kbu34/automated-bloodstain-segmentation-improved.git
 
-cd Automated_Bloodstain_segmentation
+cd Automated_Bloodstain_segmentation-improved
+pip install -r requirements.txt
+
+cd stain_segmentation
+```
+
+#### Linux/MacOS:
+Open terminal (ctrl + alt + T on Linux).
+
+Navigate to the desired installation location.
+
+Enter the following commands to the terminal line by line.
+
+```
+git clone https://eng-git.canterbury.ac.nz/kbu34/automated-bloodstain-segmentation-improved.git
+
+cd Automated_Bloodstain_segmentation-improved
 pip install -r requirements.txt
 
 cd stain_segmentation
