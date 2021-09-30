@@ -7,6 +7,7 @@ import cv2
 import os
 import csv
 import time
+import sys
 
 
 class Pattern:
@@ -66,6 +67,10 @@ class Pattern:
 
             self.plot_intersection_scatter(ax1, x, y)
             nbins = 25
+            print("hello", [x,y])
+            if np.linalg.cond([x,y]) < 1/sys.float_info.epsilon:
+                x.append(1)
+                y.append(1)
             k = kde.gaussian_kde([x,y])
             xi, yi = np.mgrid[min(x):max(x):nbins*1j, min(y):max(y):nbins*1j]
             point_density = k([xi.reshape(-1), yi.reshape(-1)])
