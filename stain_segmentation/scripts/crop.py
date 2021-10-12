@@ -42,15 +42,12 @@ def remove_rulers(image):
         
     sort_top_y = sorted(y_top_count, key=y_top_count.get)
     y = max(sort_top_y[-20:]) + 125
-    print(y)
     
     sort_left_x = sorted(x_left_count, key=x_left_count.get)
     x = sort_left_x[-1] + 15
-    print(x)
 
     sort_right_x = sorted(x_right_count, key=x_right_count.get)
     w2 = min(sort_right_x[-4:]) - 2 * x 
-    print(w2)
 
     sort_bottom_y = sorted(y_bottom_count, key=y_bottom_count.get)
     h2 = min(sort_bottom_y[-4:]) - y - 15
@@ -58,7 +55,6 @@ def remove_rulers(image):
     if h2 > 0:
         h = h2
 
-    print(h)
     crop_img = image[y:y+h, x:x+w2]
    
     return crop_img

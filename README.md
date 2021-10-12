@@ -100,4 +100,4 @@ For more information see the report attached to this repo or email me at clairel
 
 For further work on this repo see https://docs.google.com/document/d/1_ieyeSxFw5pi7pMLjonNRQM7eUtoN1-qwqkRn5WOLdY/edit?usp=sharing
 
-For information on the improved version contact me Phillip Kim at phillipkim156@gmail.com
+For information on the improved version (2021) contact Phillip Kim at phillipkim156@gmail.com
