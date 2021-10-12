@@ -67,7 +67,6 @@ class Pattern:
 
             self.plot_intersection_scatter(ax1, x, y)
             nbins = 25
-            print("hello", [x,y])
             if np.linalg.cond([x,y]) < 1/sys.float_info.epsilon:
                 x.append(1)
                 y.append(1)
