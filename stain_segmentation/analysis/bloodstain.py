@@ -186,7 +186,7 @@ class Stain:
             y0 = int(y - pty)
             y1 = int(y + pty)
             
-            if direction != "?":
+            if direction != [None, None]:
                 if direction[0] == "left":
                     x_use = max(x0, x1)
                 else:
