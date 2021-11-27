@@ -40,6 +40,9 @@ pip install -r requirements.txt
 cd stain_segmentation
 ```
 
+### IDE setup for development purposes
+Please refer to the quick guide.
+
 ### UI Tool
 
 ```
